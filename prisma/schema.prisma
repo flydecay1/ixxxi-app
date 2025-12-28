@@ -1,0 +1,255 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Core user - linked to Solana wallet
+model User {
+  id            String   @id @default(cuid())
+  walletAddress String   @unique // Solana wallet = identity
+  email         String?  @unique // Optional, for notifications
+  username      String?  @unique // Display name
+  avatarUrl     String?
+  bio           String?
+  role          String   @default("listener") // "listener" | "artist" | "admin"
+  
+  // Token holdings (cached, synced from chain)
+  tokenBalance  Float    @default(0)
+  tier          String   @default("free") // "free" | "holder" | "premium" | "whale"
+  
+  // Stats
+  totalPlays    Int      @default(0)
+  totalStaked   Float    @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastSeenAt    DateTime @default(now())
+
+  // Relations
+  artist        Artist?
+  plays         Play[]
+  stakes        Stake[]
+  following     Follow[]  @relation("follower")
+  followers     Follow[]  @relation("following")
+  likes         Like[]
+  playlists     Playlist[]
+}
+
+// Artist profile - extends User
+model Artist {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Profile
+  name            String
+  bio             String?
+  avatarUrl       String?
+  bannerUrl       String?
+  location        String?
+  genre           String?
+  
+  // Social links (JSON string)
+  links           String?  // {"twitter": "...", "instagram": "...", "website": "..."}
+  
+  // Verification
+  isVerified      Boolean  @default(false)
+  verifiedAt      DateTime?
+  stakeAmount     Float    @default(0) // Tokens staked for verification
+  
+  // Stats (denormalized for performance)
+  totalTracks     Int      @default(0)
+  totalPlays      Int      @default(0)
+  totalFollowers  Int      @default(0)
+  totalRevenue    Float    @default(0)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  tracks          Track[]
+}
+
+// Music tracks
+model Track {
+  id              String   @id @default(cuid())
+  artistId        String
+  artist          Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  title           String
+  ticker          String   // e.g. "$LOFI-TKY"
+  description     String?
+  genre           String?
+  bpm             Int?
+  duration        Int?     // seconds
+  
+  // Files (IPFS CIDs)
+  audioUrl        String   // IPFS CID or URL
+  coverUrl        String?  // IPFS CID or URL
+  waveformData    String?  // JSON array for waveform visualization
+  
+  // Location
+  region          String?  // "TOKYO, JP"
+  coordinates     String?  // "35.6762° N, 139.6503° E"
+  
+  // Token gating
+  gateType        String   @default("none") // "none" | "token" | "nft" | "paid"
+  gateTokenMint   String?  // Required token mint address
+  gateTokenAmount Float?   // Required token amount
+  gateNftCollection String? // Required NFT collection
+  priceSOL        Float?   // Price in SOL (if paid)
+  priceToken      Float?   // Price in $IXXXI (if paid)
+  
+  // Stats
+  playCount       Int      @default(0)
+  likeCount       Int      @default(0)
+  stakeCount      Float    @default(0) // Total tokens staked on this track
+  
+  // Revenue
+  totalRevenue    Float    @default(0)
+  
+  // Status
+  status          String   @default("draft") // "draft" | "published" | "archived"
+  publishedAt     DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  plays           Play[]
+  stakes          Stake[]
+  likes           Like[]
+  playlistTracks  PlaylistTrack[]
+}
+
+// Play history - for analytics and royalty calculations
+model Play {
+  id              String   @id @default(cuid())
+  trackId         String
+  track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  // Play data
+  duration        Int      @default(0) // How long they listened (seconds)
+  completed       Boolean  @default(false) // Did they finish the track?
+  
+  // Context
+  source          String?  // "feed" | "search" | "playlist" | "direct"
+  
+  // Location (anonymized)
+  region          String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([trackId, createdAt])
+  @@index([userId, createdAt])
+}
+
+// Curation stakes - users bet on tracks
+model Stake {
+  id              String   @id @default(cuid())
+  trackId         String
+  track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount          Float    // Tokens staked
+  
+  // Rewards (calculated periodically)
+  rewardsEarned   Float    @default(0)
+  rewardsClaimed  Float    @default(0)
+  
+  // On-chain reference
+  txSignature     String?  // Solana transaction signature
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([trackId, userId])
+  @@index([userId])
+}
+
+// Social: Follows
+model Follow {
+  id              String   @id @default(cuid())
+  followerId      String
+  follower        User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId     String
+  following       User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  
+  @@unique([followerId, followingId])
+  @@index([followingId])
+}
+
+// Social: Likes
+model Like {
+  id              String   @id @default(cuid())
+  trackId         String
+  track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  
+  @@unique([trackId, userId])
+  @@index([userId])
+}
+
+// Playlists
+model Playlist {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String?
+  coverUrl        String?
+  isPublic        Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tracks          PlaylistTrack[]
+}
+
+model PlaylistTrack {
+  id              String   @id @default(cuid())
+  playlistId      String
+  playlist        Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  trackId         String
+  track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  position        Int
+  
+  addedAt         DateTime @default(now())
+  
+  @@unique([playlistId, trackId])
+  @@index([playlistId])
+}
+
+// Platform analytics (aggregated)
+model DailyStats {
+  id              String   @id @default(cuid())
+  date            DateTime @unique
+  
+  totalPlays      Int      @default(0)
+  uniqueListeners Int      @default(0)
+  newUsers        Int      @default(0)
+  newArtists      Int      @default(0)
+  newTracks       Int      @default(0)
+  totalStaked     Float    @default(0)
+  totalRevenue    Float    @default(0)
+  
+  // Top content (JSON)
+  topTracks       String?  // JSON array of track IDs
+  topArtists      String?  // JSON array of artist IDs
+  
+  createdAt       DateTime @default(now())
+}

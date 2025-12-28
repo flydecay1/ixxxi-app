@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "buildCommand": "npx prisma generate && npm run build",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "NEXT_PUBLIC_SOLANA_NETWORK": "devnet",
+    "NEXT_PUBLIC_SOLANA_RPC": "https://api.devnet.solana.com",
+    "WALLET_ENCRYPTION_KEY": "@wallet_encryption_key"
+  },
+  "crons": [
+    {
+      "path": "/api/cron/sync-stats",
+      "schedule": "0 * * * *"
+    }
+  ]
+}
