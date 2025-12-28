@@ -69,6 +69,57 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 - [x] Cron jobs (stats sync, cleanup)
 - [x] API documentation
 
+### v1.1.0: Search & Discovery
+- [x] Full-text search API (tracks, artists, playlists, users)
+- [x] Genre browsing with metadata
+- [x] Radio mode (seed-based playlist generation)
+- [x] Search hooks (useSearch, useGenres, useRadio, useTrending)
+
+### v1.2.0: PWA & Mobile
+- [x] PWA manifest with app shortcuts
+- [x] Service worker (offline caching, background sync)
+- [x] Offline fallback page
+- [x] Share target for audio files
+
+### v1.3.0: Messaging & Notifications
+- [x] Direct messaging (user-to-user)
+- [x] Artist broadcast messaging
+- [x] Push notification subscription
+- [x] Notification templates (releases, follows, earnings)
+- [x] Redis caching layer
+
+---
+
+## 🚀 NEXT: v1.4.0+ Roadmap
+
+### v1.4.0: Enhanced Player
+- [ ] Queue management
+- [ ] Shuffle and repeat modes
+- [ ] Crossfade between tracks
+- [ ] Lyrics display (synced)
+- [ ] Equalizer presets
+
+### v1.5.0: Artist Tools
+- [ ] Batch upload (albums/EPs)
+- [ ] Release scheduling
+- [ ] Fan engagement dashboard
+- [ ] Revenue withdrawal
+- [ ] Collaboration invites
+
+### v1.6.0: Social v2
+- [ ] Direct mentions (@username)
+- [ ] Shared playlists (collaborative)
+- [ ] Stories/highlights
+- [ ] Live streaming integration
+- [ ] Fan clubs
+
+### v1.7.0: Monetization
+- [ ] Subscription tiers
+- [ ] Tipping/donations
+- [ ] Crowdfunding for releases
+- [ ] Merch integration
+- [ ] Event ticketing
+
 ---
 
 ## 🛠️ API Reference
@@ -150,6 +201,21 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 | `/api/health` | GET/POST | Health checks |
 | `/api/cron/sync-stats` | GET | Sync daily stats |
 | `/api/cron/cleanup` | GET | Database cleanup |
+
+### Search & Discovery
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/search` | GET | Full-text search |
+| `/api/genres` | GET | Browse genres |
+| `/api/radio` | GET | Generate radio playlist |
+
+### Messaging
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/messages` | GET/POST/PATCH/DELETE | Direct messages |
+| `/api/messages/broadcast` | GET/POST | Artist broadcasts |
+| `/api/notifications/subscribe` | POST/DELETE | Push subscriptions |
+| `/api/notifications/send` | POST | Send push notification |
 
 ---
 
