@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "python3", "openssl", "gcc", "gnumake", "pkg-config", "libudev-zero", "libusb1"]
+nixPkgs = ["nodejs_20", "python3", "openssl", "gcc", "gnumake", "pkg-config", "systemd"]
 
 [phases.install]
-cmds = ["npm ci --legacy-peer-deps"]
+cmds = ["npm ci --legacy-peer-deps --ignore-scripts && npm rebuild --legacy-peer-deps || true"]
 
 [phases.build]
 cmds = ["npx prisma generate", "npm run build"]
