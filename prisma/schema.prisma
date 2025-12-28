@@ -145,9 +145,21 @@ model Track {
   sales           Int      @default(0) // Number of purchases
   
   // Status
-  status          String   @default("processing") // "processing" | "ready" | "published" | "archived" | "failed"
+  status          String   @default("processing") // "processing" | "ready" | "published" | "scheduled" | "archived" | "failed"
   processingError String?  // Error message if processing failed
   publishedAt     DateTime?
+  
+  // Early access / Scheduling
+  scheduledReleaseAt DateTime? // Public release date
+  earlyAccessDays    Int?      // Days before release for premium users
+  
+  // Exclusive content
+  isExclusive     Boolean  @default(false)
+  requiredTier    String?  // "free" | "holder" | "premium" | "whale"
+  
+  // Lossless audio
+  losslessUrl     String?  // FLAC file URL for premium
+  losslessKey     String?  // Storage key for FLAC file
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -159,6 +171,7 @@ model Track {
   playlistTracks  PlaylistTrack[]
   purchases       Purchase[]
   comments        Comment[]
+  downloads       Download[]
   
   @@index([artistId])
   @@index([status])
@@ -371,4 +384,21 @@ model Comment {
   @@index([trackId, createdAt])
   @@index([userId])
   @@index([parentId])
+}
+
+// Offline downloads
+model Download {
+  id              String   @id @default(cuid())
+  userId          String
+  trackId         String
+  track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  
+  quality         String   // "320kbps" | "FLAC"
+  fileSize        Int?     // Size in bytes
+  expiresAt       DateTime // Download link expiration
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId])
+  @@index([trackId])
 }
