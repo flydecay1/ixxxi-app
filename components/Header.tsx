@@ -52,21 +52,25 @@ export default function Header() {
         </Link>
 
         {/* CENTER: NAV (Desktop) */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-5">
           <Link href="/discover" className="text-gray-400 hover:text-white transition text-sm">
             Discover
           </Link>
           <Link href="/charts" className="text-gray-400 hover:text-white transition text-sm">
             Charts
           </Link>
+          <Link href="/trade" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-1">
+            <span>Trade</span>
+            <span className="px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded">NEW</span>
+          </Link>
           <Link href="/tv" className="text-gray-400 hover:text-white transition text-sm">
             TV
           </Link>
-          <Link href="/faq" className="text-gray-400 hover:text-white transition text-sm">
-            FAQ
+          <Link href="/pricing" className="text-gray-400 hover:text-white transition text-sm">
+            Pricing
           </Link>
           {user?.isArtist && (
-            <Link href="/artist/dashboard" className="text-gray-400 hover:text-white transition text-sm">
+            <Link href="/artist/dashboard" className="text-cyan-400 hover:text-cyan-300 transition text-sm font-medium">
               Dashboard
             </Link>
           )}

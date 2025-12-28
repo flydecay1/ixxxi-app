@@ -7,8 +7,10 @@ import Header from "../components/Header";
 import GlobeView from "../components/GlobeView";
 import { GateCheckOverlay, GateBadge } from "../components/GateCheckOverlay";
 import CommandPalette from "../components/CommandPalette";
+import { CompactTerminal } from "../components/BloombergTerminal";
+import LiveClock from "../components/LiveClock";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { MapPin, Activity, Lock, Unlock, Command, Wifi, WifiOff, Tv } from "lucide-react";
+import { MapPin, Activity, Lock, Unlock, Command, Wifi, WifiOff, Tv, Upload, Radio, TrendingUp, Users, Zap, ChevronRight, Play, Pause } from "lucide-react";
 import Link from "next/link";
 
 import type { AudioAsset } from "./types";
@@ -200,83 +202,135 @@ export default function Home() {
 
       <div className="flex flex-col md:flex-row flex-1 pt-16 pb-20 overflow-hidden">
         
-        {/* LEFT COLUMN: COMPACT FEED */}
-        <div className="md:w-[350px] w-full md:h-full h-[50vh] border-r md:border-r border-green-500/20 flex flex-col bg-black/90 z-20 overflow-hidden">
-          <div className="p-3 border-b border-green-500/20 bg-green-900/10 text-[10px] tracking-tighter flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <span>TERMINAL_v.5</span>
-              {isOnline ? (
-                <Wifi size={10} className="text-green-500" />
-              ) : (
-                <WifiOff size={10} className="text-red-500" />
-              )}
+        {/* LEFT COLUMN: ACTION PANEL */}
+        <div className="md:w-[380px] w-full md:h-full h-[50vh] border-r border-green-500/20 flex flex-col bg-black/95 z-20 overflow-hidden">
+          
+          {/* Header with Clock */}
+          <div className="p-3 border-b border-green-500/20 bg-green-900/10">
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex items-center gap-2 text-[10px]">
+                <span className="font-bold">IXXXI PROTOCOL</span>
+                {isOnline ? (
+                  <Wifi size={10} className="text-green-500" />
+                ) : (
+                  <WifiOff size={10} className="text-red-500" />
+                )}
+                <span className={`${isOnline ? 'animate-pulse text-green-400' : 'text-red-500'}`}>
+                  ● {isOnline ? 'LIVE' : 'OFFLINE'}
+                </span>
+              </div>
+              <LiveClock className="text-xs" showDate={false} />
             </div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/tv"
-                className="flex items-center gap-1 px-2 py-1 border border-cyan-500/30 rounded hover:bg-cyan-500/10 transition-colors text-cyan-400"
-                title="TV Mode"
+            
+            {/* Quick Action Buttons */}
+            <div className="grid grid-cols-2 gap-2 mt-3">
+              <Link 
+                href="/artist/apply"
+                className="flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 rounded-lg hover:border-purple-400 transition-all group"
               >
-                <Tv size={10} />
-                <span className="hidden sm:inline">TV</span>
+                <Upload size={16} className="text-purple-400" />
+                <span className="text-sm text-purple-400 font-medium">Upload</span>
               </Link>
-              <button 
-                onClick={() => setShowCommandPalette(true)}
-                className="flex items-center gap-1 px-2 py-1 border border-green-500/30 rounded hover:bg-green-500/10 transition-colors"
-                title="Search (⌘K)"
+              <Link 
+                href="/tv"
+                className="flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-cyan-500/20 to-green-500/20 border border-cyan-500/30 rounded-lg hover:border-cyan-400 transition-all group"
               >
-                <Command size={10} />
-                <span className="hidden sm:inline">⌘K</span>
-              </button>
-              <span className={`${isOnline ? 'animate-pulse' : 'text-red-500'}`}>
-                ● {isOnline ? 'LIVE' : 'OFFLINE'}
-              </span>
+                <Radio size={16} className="text-cyan-400" />
+                <span className="text-sm text-cyan-400 font-medium">Live TV</span>
+              </Link>
             </div>
           </div>
 
+          {/* Stats Row */}
+          <div className="grid grid-cols-3 gap-1 p-2 border-b border-green-500/20 bg-black/50">
+            <div className="text-center p-2">
+              <div className="text-lg font-bold text-green-400">12.4K</div>
+              <div className="text-[8px] text-gray-500 uppercase">Listeners</div>
+            </div>
+            <div className="text-center p-2 border-x border-green-500/10">
+              <div className="text-lg font-bold text-cyan-400">$2.4M</div>
+              <div className="text-[8px] text-gray-500 uppercase">24h Vol</div>
+            </div>
+            <div className="text-center p-2">
+              <div className="text-lg font-bold text-purple-400">847</div>
+              <div className="text-[8px] text-gray-500 uppercase">Artists</div>
+            </div>
+          </div>
+
+          {/* Trending Section Header */}
+          <div className="flex items-center justify-between px-3 py-2 bg-green-900/10">
+            <div className="flex items-center gap-2 text-[10px]">
+              <TrendingUp size={12} className="text-green-400" />
+              <span className="font-bold">TRENDING NOW</span>
+            </div>
+            <Link href="/charts" className="text-[10px] text-green-400 hover:underline flex items-center">
+              View All <ChevronRight size={12} />
+            </Link>
+          </div>
+
+          {/* Track List */}
           <div className="flex-1 overflow-y-auto scrollbar-hide">
-            {MARKET_ASSETS.map((asset) => {
+            {MARKET_ASSETS.map((asset, index) => {
               const changeColor = asset.change24h > 0 ? 'green-500' : asset.change24h < 0 ? 'red-500' : 'gray-500';
               const changeSign = asset.change24h > 0 ? '+' : '';
+              const isActive = currentTrack?.id === asset.id;
+              
               return (
                 <div 
                   key={asset.id} 
                   onClick={() => handleAssetClick(asset)}
-                  className={`group p-2 border-b border-white/5 cursor-pointer flex items-center justify-between hover:bg-green-500/5 transition-all ${currentTrack?.id === asset.id ? 'bg-green-500/10 border-l-2 border-l-green-500' : ''} ${asset.isPremium && !connected ? 'opacity-50' : ''}`}
+                  className={`group p-3 border-b border-white/5 cursor-pointer flex items-center justify-between hover:bg-green-500/5 transition-all ${isActive ? 'bg-green-500/10 border-l-2 border-l-green-500' : ''} ${asset.isPremium && !connected ? 'opacity-60' : ''}`}
                 >
-                  <div className="flex items-center gap-2 relative">
-                    <div className="relative w-8 h-8 bg-gray-900 border border-white/10 overflow-hidden">
+                  <div className="flex items-center gap-3">
+                    {/* Rank */}
+                    <span className="text-lg font-bold text-gray-600 w-6">{index + 1}</span>
+                    
+                    {/* Cover */}
+                    <div className="relative w-10 h-10 bg-gray-900 border border-white/10 rounded overflow-hidden">
                       <img src={asset.coverUrl} alt={`${asset.title} cover`} className="w-full h-full object-cover" />
+                      {/* Play overlay on hover */}
+                      <div className={`absolute inset-0 flex items-center justify-center bg-black/50 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                        {isActive && isPlaying ? (
+                          <Pause size={16} className="text-green-400" />
+                        ) : (
+                          <Play size={16} className="text-white" />
+                        )}
+                      </div>
                       {/* Gate Badge */}
                       {asset.isPremium && (
-                        <div className={`absolute inset-0 flex items-center justify-center ${connected ? 'bg-green-500/20' : 'bg-red-500/30'}`}>
-                          {connected ? (
-                            <Unlock size={10} className="text-green-400" />
-                          ) : (
-                            <Lock size={10} className="text-red-400" />
-                          )}
+                        <div className={`absolute top-0 right-0 p-0.5 ${connected ? 'bg-green-500' : 'bg-red-500'}`}>
+                          {connected ? <Unlock size={8} /> : <Lock size={8} />}
                         </div>
                       )}
                     </div>
+                    
+                    {/* Info */}
                     <div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs font-bold leading-none">{asset.ticker}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-white">{asset.title}</span>
                         {asset.isPremium && (
-                          <span className={`text-[8px] px-1 ${asset.gateType === 'nft' ? 'bg-purple-900/50 text-purple-400' : 'bg-yellow-900/50 text-yellow-400'}`}>
+                          <span className={`text-[8px] px-1 py-0.5 rounded ${asset.gateType === 'nft' ? 'bg-purple-900/50 text-purple-400' : 'bg-yellow-900/50 text-yellow-400'}`}>
                             {asset.gateType === 'nft' ? 'NFT' : 'TOKEN'}
                           </span>
                         )}
                       </div>
-                      <div className="text-[9px] text-gray-500">{asset.region}</div>
+                      <div className="text-[11px] text-gray-500">{asset.artist} • {asset.region}</div>
                     </div>
                   </div>
-                  <div className="text-right text-[10px]">
-                    <div className="text-gray-400">${asset.currentPrice.toFixed(2)}</div>
-                    <div className={`text-${changeColor}`}>{changeSign}{asset.change24h.toFixed(2)}%</div>
+                  
+                  {/* Price/Change */}
+                  <div className="text-right">
+                    <div className="text-sm font-mono text-white">${asset.currentPrice.toFixed(2)}</div>
+                    <div className={`text-[10px] font-mono text-${changeColor}`}>{changeSign}{asset.change24h.toFixed(2)}%</div>
                   </div>
                 </div>
               );
             })}
+          </div>
+
+          {/* Bottom: Live Feed */}
+          <div className="border-t border-green-500/20 p-2">
+            <CompactTerminal />
           </div>
         </div>
 
@@ -290,15 +344,22 @@ export default function Home() {
             highLevel={frequencyData.highLevel}
           />
           
-          {/* Overlay UI */}
-          <div className="absolute bottom-10 left-10 p-4 border border-green-500/20 bg-black/60 backdrop-blur-md max-w-xs">
+          {/* Now Playing Overlay */}
+          <div className="absolute bottom-10 left-10 p-4 border border-green-500/20 bg-black/70 backdrop-blur-md max-w-xs rounded-lg">
             <div className="text-[10px] text-green-500/50 mb-1 tracking-widest uppercase flex items-center gap-1">
-              Targeting_System {isPlaying && <Activity size={10} className="animate-pulse" />}
+              {isPlaying ? (
+                <>
+                  <Activity size={10} className="animate-pulse text-green-400" />
+                  NOW PLAYING
+                </>
+              ) : (
+                'SELECT A TRACK'
+              )}
             </div>
-            <div className="text-2xl font-bold uppercase">{currentTrack?.title || "Orbital_Idle"}</div>
-            <div className="text-sm text-green-500/80">{currentTrack?.artist ? `by ${currentTrack.artist}` : ''}</div>
-            <div className="text-xs text-green-500/60 mt-1">{currentTrack?.region || ''}</div>
-            <div className="flex gap-4 mt-2 text-[10px] text-green-700">
+            <div className="text-2xl font-bold text-white">{currentTrack?.title || "Orbital_Idle"}</div>
+            <div className="text-sm text-gray-400">{currentTrack?.artist ? `by ${currentTrack.artist}` : ''}</div>
+            <div className="text-xs text-gray-500 mt-1">{currentTrack?.region || ''}</div>
+            <div className="flex gap-4 mt-3 text-[10px] text-green-600">
               <div className="flex items-center gap-1">
                 <MapPin size={10} />
                 LAT: {latDisplay}
@@ -308,6 +369,17 @@ export default function Home() {
                 LON: {lonDisplay}
               </div>
             </div>
+          </div>
+
+          {/* Command Palette Hint */}
+          <div className="absolute top-20 right-4">
+            <button 
+              onClick={() => setShowCommandPalette(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-black/50 border border-green-500/30 rounded-lg hover:bg-green-500/10 transition-colors text-xs"
+            >
+              <Command size={12} />
+              <span>⌘K</span>
+            </button>
           </div>
         </div>
       </div>

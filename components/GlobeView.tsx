@@ -195,7 +195,7 @@ function ContinentOutlines({ radius, opacity }: { radius: number; opacity: numbe
           color: "#22c55e", 
           transparent: true, 
           opacity: opacity,
-          linewidth: 1
+          linewidth: 2
         });
         lines.push(new THREE.Line(geometry, material));
       });
@@ -208,6 +208,71 @@ function ContinentOutlines({ radius, opacity }: { radius: number; opacity: numbe
     <group ref={linesRef}>
       {continentLines.map((line, i) => (
         <primitive key={i} object={line} />
+      ))}
+    </group>
+  );
+}
+
+// Filled continent shapes for realistic look
+function FilledContinents({ radius }: { radius: number }) {
+  const meshes = useMemo(() => {
+    const result: THREE.Mesh[] = [];
+    
+    CONTINENT_DATA.forEach(continent => {
+      continent.paths.forEach(path => {
+        // Create a shape from the path points
+        const shape = new THREE.Shape();
+        
+        // Project points onto a 2D plane first (using equirectangular projection)
+        const points2D = path.map(([lat, lon]) => ({
+          x: (lon + 180) * (Math.PI / 180),
+          y: (lat + 90) * (Math.PI / 180)
+        }));
+        
+        if (points2D.length < 3) return;
+        
+        shape.moveTo(points2D[0].x, points2D[0].y);
+        points2D.slice(1).forEach(p => shape.lineTo(p.x, p.y));
+        shape.closePath();
+        
+        // Create geometry from shape
+        const geometry = new THREE.ShapeGeometry(shape);
+        
+        // Map 2D shape vertices back to 3D sphere
+        const positions = geometry.attributes.position;
+        for (let i = 0; i < positions.count; i++) {
+          const x = positions.getX(i);
+          const y = positions.getY(i);
+          
+          // Convert back to lat/lon
+          const lon = (x * 180 / Math.PI) - 180;
+          const lat = (y * 180 / Math.PI) - 90;
+          
+          // Convert to 3D position
+          const pos = get3DPos(lat, lon, radius);
+          positions.setXYZ(i, pos.x, pos.y, pos.z);
+        }
+        
+        geometry.computeVertexNormals();
+        
+        const material = new THREE.MeshBasicMaterial({
+          color: "#166534", // Dark green for land
+          transparent: true,
+          opacity: 0.6,
+          side: THREE.DoubleSide
+        });
+        
+        result.push(new THREE.Mesh(geometry, material));
+      });
+    });
+    
+    return result;
+  }, [radius]);
+
+  return (
+    <group>
+      {meshes.map((mesh, i) => (
+        <primitive key={i} object={mesh} />
       ))}
     </group>
   );
@@ -738,18 +803,21 @@ function TacticalGlobe({
           />
         </mesh>
 
-        {/* Inner solid core for depth */}
+        {/* Inner solid core - ocean */}
         <mesh>
           <sphereGeometry args={[GLOBE_RADIUS - 0.02, 32, 32]} />
-          <meshBasicMaterial color="#050505" transparent opacity={0.95} />
+          <meshBasicMaterial color="#0a1628" transparent opacity={0.98} />
         </mesh>
 
         {/* Lat/Lon Grid Lines */}
         <GridLines radius={GLOBE_RADIUS + 0.005} />
 
-        {/* Continent Outlines - the star of the show */}
+        {/* Filled Continents - land masses */}
+        <FilledContinents radius={GLOBE_RADIUS + 0.008} />
+
+        {/* Continent Outlines - borders */}
         <group ref={continentGroupRef}>
-          <ContinentOutlines radius={GLOBE_RADIUS + 0.01} opacity={0.7} />
+          <ContinentOutlines radius={GLOBE_RADIUS + 0.01} opacity={0.9} />
         </group>
 
         {/* Fresnel Rim Glow */}
