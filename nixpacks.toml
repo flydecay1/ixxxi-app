@@ -8,4 +8,4 @@ cmds = ["npm ci --legacy-peer-deps --ignore-scripts && npm rebuild --legacy-peer
 cmds = ["npx prisma generate", "npm run build"]
 
 [start]
-cmd = "npx prisma migrate deploy && npm start"
+cmd = "npx prisma db push --skip-generate && npm start"
