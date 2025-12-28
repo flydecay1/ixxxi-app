@@ -122,6 +122,10 @@ model Track {
   waveformData    String?  // JSON array for waveform visualization
   waveformUrl     String?  // Pre-rendered waveform image
   
+  // Lyrics
+  lyrics          String?  // Plain text lyrics
+  lyricsData      String?  // JSON for synced lyrics
+  
   // Location
   region          String?  // "TOKYO, JP"
   coordinates     String?  // "35.6762° N, 139.6503° E"

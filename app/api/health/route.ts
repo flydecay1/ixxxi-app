@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
   const health: HealthCheck = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    version: '1.0.0',
+    version: '1.4.0',
     uptime: Math.floor((Date.now() - startTime) / 1000),
     checks: {
       database: { status: 'up' },
