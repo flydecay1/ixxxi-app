@@ -38,6 +38,15 @@ model User {
   likes         Like[]
   playlists     Playlist[]
   comments      Comment[]
+  
+  // Messaging relations
+  conversations     ConversationParticipant[]
+  sentMessages      Message[] @relation("MessageSender")
+  receivedMessages  Message[] @relation("MessageRecipient")
+  notifications     Notification[]
+  pushSubscriptions PushSubscription[]
+  earlyAccessLists  EarlyAccess[]
+  purchases         Purchase[]
 }
 
 // Artist profile - extends User
@@ -79,6 +88,8 @@ model Artist {
 
   // Relations
   tracks          Track[]
+  broadcasts      Broadcast[]
+  earlyAccessList EarlyAccess[]
 }
 
 // Music tracks
@@ -309,7 +320,8 @@ model DailyStats {
 // Track purchases
 model Purchase {
   id              String   @id @default(cuid())
-  userId          String   // Buyer wallet address
+  buyerId         String   // Buyer user ID
+  buyer           User     @relation(fields: [buyerId], references: [id], onDelete: Cascade)
   trackId         String
   track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
   
@@ -326,7 +338,7 @@ model Purchase {
   createdAt       DateTime @default(now())
   completedAt     DateTime?
   
-  @@index([userId])
+  @@index([buyerId])
   @@index([trackId])
   @@index([txSignature])
 }
@@ -401,4 +413,134 @@ model Download {
   
   @@index([userId])
   @@index([trackId])
+}
+
+// Conversations for messaging
+model Conversation {
+  id              String   @id @default(cuid())
+  type            String   @default("direct") // "direct" | "group" | "broadcast"
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  participants    ConversationParticipant[]
+  messages        Message[]
+}
+
+model ConversationParticipant {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Mute / notification settings
+  isMuted         Boolean  @default(false)
+  lastReadAt      DateTime?
+  
+  joinedAt        DateTime @default(now())
+  
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+// Direct messages
+model Message {
+  id              String   @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String
+  sender          User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipientId     String?  // For direct messages
+  recipient       User?    @relation("MessageRecipient", fields: [recipientId], references: [id], onDelete: SetNull)
+  
+  content         String   // Message text (max 2000 chars)
+  
+  // Attachments (JSON)
+  attachments     String?  // [{type: "track", id: "..."}, {type: "image", url: "..."}]
+  
+  readAt          DateTime?
+  editedAt        DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([recipientId])
+}
+
+// Artist broadcast messages
+model Broadcast {
+  id              String   @id @default(cuid())
+  artistId        String
+  artist          Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  title           String?
+  content         String   // Message content
+  audience        String   // "all" | "token_holders" | "premium" | "early_access"
+  
+  // Call to action
+  actionUrl       String?
+  actionLabel     String?
+  
+  recipientCount  Int      @default(0)
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([artistId, createdAt])
+}
+
+// User notifications (in-app)
+model Notification {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            String   // "broadcast" | "new_release" | "follow" | "like" | "comment" | "earnings" | "system"
+  title           String
+  message         String
+  
+  // Extra data (JSON)
+  data            String?  // {artistId, trackId, actionUrl, etc.}
+  
+  isRead          Boolean  @default(false)
+  readAt          DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+// Push notification subscriptions
+model PushSubscription {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  endpoint        String   @unique
+  p256dh          String   // encryption key
+  auth            String   // auth secret
+  
+  // Device info
+  userAgent       String?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId])
+}
+
+// Early access list for artists
+model EarlyAccess {
+  id              String   @id @default(cuid())
+  artistId        String
+  artist          Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  
+  @@unique([artistId, userId])
+  @@index([artistId])
 }
