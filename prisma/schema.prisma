@@ -52,6 +52,7 @@ model Artist {
   bannerUrl       String?
   location        String?
   genre           String?
+  wallet          String?  // Artist's Solana wallet
   
   // Social links (JSON string)
   links           String?  // {"twitter": "...", "instagram": "...", "website": "..."}
@@ -60,6 +61,11 @@ model Artist {
   isVerified      Boolean  @default(false)
   verifiedAt      DateTime?
   stakeAmount     Float    @default(0) // Tokens staked for verification
+  
+  // Artist Token (SPL Token)
+  tokenMint       String?  @unique // Artist's SPL token mint address
+  tokenSymbol     String?  // e.g. "$ARTIST"
+  tokenName       String?  // e.g. "Artist Fan Token"
   
   // Stats (denormalized for performance)
   totalTracks     Int      @default(0)
@@ -129,6 +135,14 @@ model Track {
   // Revenue
   totalRevenue    Float    @default(0)
   
+  // NFT / Web3
+  nftMint         String?  @unique // NFT mint address for this track
+  nftMetadataUri  String?  // URI to NFT metadata (Arweave/IPFS)
+  royaltySplits   Json?    // Royalty distribution: [{wallet, percentage, role}]
+  price           Float?   // Price in USD for purchase
+  releaseDate     DateTime?
+  sales           Int      @default(0) // Number of purchases
+  
   // Status
   status          String   @default("processing") // "processing" | "ready" | "published" | "archived" | "failed"
   processingError String?  // Error message if processing failed
@@ -142,6 +156,7 @@ model Track {
   stakes          Stake[]
   likes           Like[]
   playlistTracks  PlaylistTrack[]
+  purchases       Purchase[]
   
   @@index([artistId])
   @@index([status])
@@ -274,4 +289,57 @@ model DailyStats {
   topArtists      String?  // JSON array of artist IDs
   
   createdAt       DateTime @default(now())
+}
+
+// Track purchases
+model Purchase {
+  id              String   @id @default(cuid())
+  userId          String   // Buyer wallet address
+  trackId         String
+  track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  
+  amount          Float    // Price paid
+  currency        String   // "SOL" | "USDC" | "TOKEN"
+  txSignature     String   @unique // Solana transaction signature
+  status          String   @default("PENDING") // "PENDING" | "COMPLETED" | "FAILED" | "REFUNDED"
+  
+  // Royalty distribution
+  artistAmount    Float?   // Amount sent to artist
+  platformFee     Float?   // Platform fee
+  royaltySplits   Json?    // Actual distribution breakdown
+  
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  @@index([userId])
+  @@index([trackId])
+  @@index([txSignature])
+}
+
+// Transaction records (for history)
+model Transaction {
+  id              String   @id @default(cuid())
+  wallet          String   // User wallet
+  signature       String   @unique // Solana tx signature
+  type            String   // "purchase" | "transfer" | "nft_mint" | "stake" | "royalty"
+  
+  amount          Float?
+  currency        String?  // "SOL" | "USDC" | token symbol
+  
+  // Related entities
+  trackId         String?
+  artistId        String?
+  purchaseId      String?
+  
+  // Metadata
+  metadata        Json?    // Additional context
+  
+  status          String   @default("confirmed") // "pending" | "confirmed" | "failed"
+  blockTime       DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([wallet])
+  @@index([type])
+  @@index([trackId])
 }
