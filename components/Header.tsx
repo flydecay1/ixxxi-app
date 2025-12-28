@@ -59,6 +59,12 @@ export default function Header() {
           <Link href="/charts" className="text-gray-400 hover:text-white transition text-sm">
             Charts
           </Link>
+          <Link href="/tv" className="text-gray-400 hover:text-white transition text-sm">
+            TV
+          </Link>
+          <Link href="/faq" className="text-gray-400 hover:text-white transition text-sm">
+            FAQ
+          </Link>
           {user?.isArtist && (
             <Link href="/artist/dashboard" className="text-gray-400 hover:text-white transition text-sm">
               Dashboard

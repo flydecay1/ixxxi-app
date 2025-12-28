@@ -8,6 +8,7 @@ import { AuthProvider } from "../context/AuthContext";
 import { UserProvider } from "../context/UserContext";
 import { PlayerProvider } from "../context/PlayerContext";
 import { ToastProvider } from "../context/ToastContext";
+import { ThemeProvider } from "../context/ThemeContext";
 import BottomPlayer from "../components/BottomPlayer";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -29,21 +30,23 @@ export default function RootLayout({
         
         {/* CRITICAL: The Wallet Provider MUST wrap everything else */}
         <AppWalletProvider>
-          <AuthProvider>
-            <UserProvider>
-              <ToastProvider>
-                <PlayerProvider>
-                    {/* The Main App Content */}
-                    <main className="min-h-screen relative overflow-hidden">
-                        {children}
-                    </main>
-                    
-                    {/* The Sticky Footer */}
-                    <BottomPlayer />
-                </PlayerProvider>
-              </ToastProvider>
-            </UserProvider>
-          </AuthProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <UserProvider>
+                <ToastProvider>
+                  <PlayerProvider>
+                      {/* The Main App Content */}
+                      <main className="min-h-screen relative overflow-hidden">
+                          {children}
+                      </main>
+                      
+                      {/* The Sticky Footer */}
+                      <BottomPlayer />
+                  </PlayerProvider>
+                </ToastProvider>
+              </UserProvider>
+            </AuthProvider>
+          </ThemeProvider>
         </AppWalletProvider>
 
       </body>
