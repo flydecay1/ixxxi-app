@@ -37,6 +37,7 @@ model User {
   followers     Follow[]  @relation("following")
   likes         Like[]
   playlists     Playlist[]
+  comments      Comment[]
 }
 
 // Artist profile - extends User
@@ -157,6 +158,7 @@ model Track {
   likes           Like[]
   playlistTracks  PlaylistTrack[]
   purchases       Purchase[]
+  comments        Comment[]
   
   @@index([artistId])
   @@index([status])
@@ -342,4 +344,31 @@ model Transaction {
   @@index([wallet])
   @@index([type])
   @@index([trackId])
+}
+
+// Track comments
+model Comment {
+  id              String   @id @default(cuid())
+  trackId         String
+  track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  content         String   // Comment text (max 500 chars)
+  timestamp       String?  // Optional timestamp in track (e.g., "1:23")
+  
+  // For replies
+  parentId        String?
+  parent          Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies         Comment[] @relation("CommentReplies")
+  
+  likeCount       Int      @default(0)
+  isEdited        Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([trackId, createdAt])
+  @@index([userId])
+  @@index([parentId])
 }
