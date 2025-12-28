@@ -843,8 +843,8 @@ export default function GlobeView({
           dampingFactor={0.05}
         />
         
-        {/* Post-processing effects */}
-        <EffectComposer multisampling={0}>
+        {/* Post-processing effects - temporarily disabled for compatibility */}
+        {/* <EffectComposer multisampling={0}>
           <Bloom 
             intensity={0.8}
             luminanceThreshold={0.2}
@@ -855,7 +855,7 @@ export default function GlobeView({
             darkness={0.6}
             blendFunction={BlendFunction.NORMAL}
           />
-        </EffectComposer>
+        </EffectComposer> */}
       </Canvas>
     </div>
   );
