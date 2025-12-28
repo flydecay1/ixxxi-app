@@ -88,14 +88,27 @@ model Track {
   bpm             Int?
   duration        Int?     // seconds
   
-  // Files (IPFS CIDs)
-  audioUrl        String   // IPFS CID or URL
-  coverUrl        String?  // IPFS CID or URL
+  // Audio Files (cloud storage)
+  audioUrl        String?  // Original upload URL (private)
+  audioKey        String?  // Storage key for the audio file
+  audioFormat     String?  // "mp3" | "wav" | "flac"
+  audioSize       Int?     // File size in bytes
+  streamUrl       String?  // HLS/DASH manifest URL (for streaming)
+  previewUrl      String?  // 30-second preview URL
+  
+  // Cover art
+  coverUrl        String?  // Cover image URL
+  coverKey        String?  // Storage key for cover
+  
+  // Waveform
   waveformData    String?  // JSON array for waveform visualization
+  waveformUrl     String?  // Pre-rendered waveform image
   
   // Location
   region          String?  // "TOKYO, JP"
   coordinates     String?  // "35.6762° N, 139.6503° E"
+  latitude        Float?
+  longitude       Float?
   
   // Token gating
   gateType        String   @default("none") // "none" | "token" | "nft" | "paid"
@@ -107,14 +120,18 @@ model Track {
   
   // Stats
   playCount       Int      @default(0)
+  uniquePlays     Int      @default(0)  // Unique listeners
   likeCount       Int      @default(0)
   stakeCount      Float    @default(0) // Total tokens staked on this track
+  skipRate        Float?   // % of plays that skip before 30s
+  avgPlayDuration Float?   // Average listen duration in seconds
   
   // Revenue
   totalRevenue    Float    @default(0)
   
   // Status
-  status          String   @default("draft") // "draft" | "published" | "archived"
+  status          String   @default("processing") // "processing" | "ready" | "published" | "archived" | "failed"
+  processingError String?  // Error message if processing failed
   publishedAt     DateTime?
   
   createdAt       DateTime @default(now())
@@ -125,6 +142,11 @@ model Track {
   stakes          Stake[]
   likes           Like[]
   playlistTracks  PlaylistTrack[]
+  
+  @@index([artistId])
+  @@index([status])
+  @@index([genre])
+  @@index([playCount])
 }
 
 // Play history - for analytics and royalty calculations

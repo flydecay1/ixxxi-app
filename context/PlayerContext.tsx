@@ -1,7 +1,7 @@
 // context/PlayerContext.tsx
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef, ReactNode } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { checkGate } from "@/lib/solana/tokenGate";
 import type { AudioAsset, GateStatus } from "../app/types";
@@ -26,6 +26,9 @@ interface PlayerState {
   registerAudioElement: (element: HTMLAudioElement | null) => void;
   audioElement: HTMLAudioElement | null;
   checkTrackAccess: (track: AudioAsset) => Promise<boolean>;
+  recordPlay: (completed?: boolean) => void;
+  currentPlayId: string | null;
+  playDuration: number;
 }
 
 export const PlayerContext = createContext<PlayerState | undefined>(undefined);
@@ -45,9 +48,53 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     checking: false,
     hasAccess: true,
   });
+  const [currentPlayId, setCurrentPlayId] = useState<string | null>(null);
+  const [playDuration, setPlayDuration] = useState(0);
+  const playStartTime = useRef<number>(0);
 
   const { connection } = useConnection();
   const { publicKey } = useWallet();
+
+  // Record a play to the API
+  const recordPlay = useCallback(async (completed = false) => {
+    if (!currentTrack) return;
+    
+    const duration = Math.round((Date.now() - playStartTime.current) / 1000);
+    setPlayDuration(duration);
+    
+    try {
+      // If we have a playId, update it; otherwise create new
+      if (currentPlayId) {
+        await fetch(`/api/tracks/${currentTrack.id}/play`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            playId: currentPlayId,
+            duration,
+            completed,
+          }),
+        });
+      } else {
+        const res = await fetch(`/api/tracks/${currentTrack.id}/play`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            walletAddress: publicKey?.toBase58(),
+            duration,
+            completed,
+            source: 'player',
+          }),
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentPlayId(data.playId);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to record play:', error);
+    }
+  }, [currentTrack, currentPlayId, publicKey]);
 
   const checkTrackAccess = useCallback(async (track: AudioAsset): Promise<boolean> => {
     // No gate required
@@ -108,6 +155,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    // Reset play tracking for new track
+    setCurrentPlayId(null);
+    playStartTime.current = Date.now();
+    
     setCurrentTrack(track);
     setIsPlaying(true);
   }, [currentTrack, checkTrackAccess]);
@@ -134,6 +185,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       registerAudioElement,
       audioElement,
       checkTrackAccess,
+      recordPlay,
+      currentPlayId,
+      playDuration,
     }}>
       {children}
     </PlayerContext.Provider>
