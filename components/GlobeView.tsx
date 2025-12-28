@@ -3,7 +3,7 @@
 import React, { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Stars, PerspectiveCamera } from "@react-three/drei";
-import { EffectComposer, Bloom, ChromaticAberration, Vignette } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 import type { AudioAsset } from "@/app/types";
@@ -844,16 +844,11 @@ export default function GlobeView({
         />
         
         {/* Post-processing effects */}
-        <EffectComposer>
+        <EffectComposer multisampling={0}>
           <Bloom 
             intensity={0.8}
             luminanceThreshold={0.2}
             luminanceSmoothing={0.9}
-            mipmapBlur
-          />
-          <ChromaticAberration 
-            blendFunction={BlendFunction.NORMAL}
-            offset={new THREE.Vector2(0.0005, 0.0005)}
           />
           <Vignette 
             offset={0.3}
