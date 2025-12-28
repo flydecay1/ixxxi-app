@@ -1,103 +1,200 @@
-# IXXXI Protocol - Build Blueprint
+# IXXXI Protocol - Build Blueprint v1.0.0
 
 ## 🎯 Vision
 Spotify meets Uniswap. Stream music, support artists, invest in culture.
 
 ---
 
-## ✅ PHASE 1: Foundation (COMPLETE)
+## ✅ COMPLETED VERSIONS
+
+### v0.1.0 - v0.3.0: Foundation
 - [x] Next.js 14 + TypeScript setup
-- [x] Prisma schema (10 models)
-- [x] Solana wallet integration
-- [x] 3D Globe visualization
-- [x] Command palette
+- [x] Prisma schema with PostgreSQL (Railway)
+- [x] Solana wallet integration (@solana/wallet-adapter)
+- [x] 3D Globe visualization (three.js)
+- [x] Command palette (cmdk)
 - [x] Toast notifications
-- [x] Basic auth flow
-
-## ✅ PHASE 2: Web2.5 UX (COMPLETE)
 - [x] Email verification login
-- [x] Embedded wallet creation
 - [x] Modern header with dropdown
-- [x] User-friendly language (no crypto jargon)
+
+### v0.4.0: UI Features
+- [x] Theme system (10 themes)
+- [x] Bloomberg Terminal component
 - [x] TV Mode with globe
+- [x] Trading page
+- [x] Premiere system
+- [x] Charts page
+- [x] User profiles
 
-## 🔄 PHASE 3: Content & Playback (IN PROGRESS)
-- [ ] Audio upload to IPFS/Arweave
-- [ ] Waveform visualization
-- [ ] Queue management
-- [ ] Offline caching (PWA)
-- [ ] DRM/content protection
-- [ ] Music video player
+### v0.5.0: Audio Infrastructure
+- [x] Cloudflare R2 storage integration
+- [x] Audio upload API with validation
+- [x] Streaming endpoint with quality presets
+- [x] DRM/content protection (watermarking, encryption)
+- [x] Play tracking with analytics
+- [x] Artist dashboard API
 
-## 📋 PHASE 4: Social Features
-- [ ] Artist follow system
-- [ ] Track likes
-- [ ] Playlists (create/share)
-- [ ] Activity feed
-- [ ] Comments on tracks
-- [ ] Share to social media
+### v0.6.0: Web3 Integration
+- [x] NFT minting (Metaplex)
+- [x] Solana Pay (SOL/USDC payments)
+- [x] Artist SPL tokens
+- [x] On-chain royalty splits
+- [x] Tier verification system
 
-## 📋 PHASE 5: Token Economics
-- [ ] $IXXXI token contract (Solana)
-- [ ] Staking on tracks
-- [ ] Revenue distribution
-- [ ] Artist verification staking
-- [ ] Tier system (free/holder/premium/whale)
-- [ ] Referral rewards
+### v0.7.0: Social Features
+- [x] Follow/unfollow system
+- [x] Track likes with toggle
+- [x] Comments with replies
+- [x] Playlist CRUD
+- [x] Activity feed (following)
 
-## 📋 PHASE 6: Discovery
-- [ ] Search (tracks, artists, playlists)
-- [ ] Genre browsing
-- [ ] Location-based discovery (globe)
-- [ ] Trending tracks
-- [ ] Recommended for you
-- [ ] Radio mode
+### v0.8.0: Premium Features
+- [x] Listening history tracking
+- [x] Personalized recommendations
+- [x] Offline downloads (tier-gated)
+- [x] Early access releases
+- [x] Exclusive content gating
 
-## 📋 PHASE 7: Artist Tools
-- [ ] Analytics dashboard (detailed)
-- [ ] Release scheduling
-- [ ] Fan messaging
-- [ ] Merch integration
-- [ ] Concert/event tickets
-- [ ] Splits (collaborator payments)
+### v0.9.0: Analytics & Insights
+- [x] Artist dashboard analytics
+- [x] Real-time metrics API
+- [x] Revenue tracking
+- [x] Audience insights
+- [x] Platform analytics (admin)
 
-## 📋 PHASE 8: Mobile & Scale
-- [ ] PWA optimization
-- [ ] Push notifications
-- [ ] React Native app
-- [ ] CDN for audio delivery
-- [ ] PostgreSQL migration
-- [ ] Redis caching
-
----
-
-## 🔧 Technical Debt
-- [ ] Add comprehensive tests
-- [ ] Error boundaries
-- [ ] Rate limiting on all APIs
-- [ ] Logging/monitoring (Sentry)
-- [ ] API documentation (OpenAPI)
+### v1.0.0: Launch Readiness
+- [x] Comprehensive health monitoring
+- [x] Rate limiting middleware
+- [x] Security headers (XSS, CORS)
+- [x] Cron jobs (stats sync, cleanup)
+- [x] API documentation
 
 ---
 
-## 🚀 Deploy Checklist
-1. Push to GitHub
-2. Connect to Vercel
-3. Add environment variables:
-   - `DATABASE_URL` (PostgreSQL)
-   - `WALLET_ENCRYPTION_KEY`
-   - `NEXT_PUBLIC_SOLANA_NETWORK`
-   - `NEXT_PUBLIC_SOLANA_RPC`
-4. Deploy!
+## 🛠️ API Reference
+
+### Authentication
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/auth/email` | POST | Send magic link email |
+| `/api/auth/verify` | GET | Verify magic link token |
+| `/api/signup` | POST | Register new user |
+| `/api/login` | POST | Login user |
+
+### Users
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/user` | GET | Get user profile |
+| `/api/user` | PATCH | Update user profile |
+| `/api/user/history` | GET/POST/DELETE | Listening history |
+| `/api/user/stats` | GET | User statistics |
+| `/api/user/tier` | GET | Token tier status |
+| `/api/user/transactions` | GET | Transaction history |
+
+### Artists
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/artist` | GET/POST | Artist profile CRUD |
+| `/api/artist/apply` | POST | Apply for artist status |
+| `/api/artist/dashboard` | GET | Artist analytics |
+| `/api/artist/token` | POST | Create fan token |
+
+### Tracks
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/tracks` | GET | List tracks |
+| `/api/tracks/[id]` | GET/PATCH/DELETE | Track CRUD |
+| `/api/track` | GET | Single track by ticker |
+| `/api/track/play` | POST | Record play |
+| `/api/upload` | POST | Upload audio file |
+| `/api/stream/[token]` | GET | Stream audio |
+| `/api/download` | GET/POST/DELETE | Offline downloads |
+
+### Social
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/social/follow` | GET/POST/DELETE | Follow system |
+| `/api/social/like` | GET/POST/DELETE | Track likes |
+| `/api/social/comment` | GET/POST/PATCH/DELETE | Comments |
+| `/api/social/activity` | GET | Activity feed |
+| `/api/playlist` | GET/POST/PATCH/DELETE | Playlists |
+| `/api/playlist/tracks` | POST/DELETE | Playlist tracks |
+
+### Web3
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/nft/mint` | POST | Mint track NFT |
+| `/api/purchase` | POST | Buy track/NFT |
+| `/api/gate` | GET | Check token gate |
+
+### Premium
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/recommendations` | GET | Personalized recommendations |
+| `/api/early-access` | GET/POST/DELETE | Early access releases |
+| `/api/exclusive` | GET/POST/PATCH | Exclusive content |
+| `/api/premiere/[id]` | GET | Premiere details |
+
+### Analytics
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/analytics/artist` | GET | Artist dashboard |
+| `/api/analytics/realtime` | GET | Live metrics |
+| `/api/analytics/revenue` | GET | Revenue tracking |
+| `/api/analytics/audience` | GET | Audience insights |
+| `/api/analytics/platform` | GET | Platform stats (admin) |
+
+### System
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health` | GET/POST | Health checks |
+| `/api/cron/sync-stats` | GET | Sync daily stats |
+| `/api/cron/cleanup` | GET | Database cleanup |
 
 ---
 
-## 📝 Current Sprint Tasks
+## 🏗️ Architecture
 
-### Priority 1 (This Week)
-1. Connect real audio upload (IPFS via web3.storage)
-2. Implement waveform generation
-3. Add track queue system
+### Tech Stack
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Styling**: Tailwind CSS, custom themes
+- **Database**: PostgreSQL (Railway)
+- **ORM**: Prisma 5.20
+- **Storage**: Cloudflare R2
+- **Blockchain**: Solana, Metaplex
+- **Deployment**: Railway (auto-deploy from GitHub)
+
+### Token Tiers
+| Tier | Tokens | Audio Quality | Benefits |
+|------|--------|---------------|----------|
+| Free | 0 | 128kbps | 10 plays/day |
+| Holder | 100+ | 256kbps | Ad-free, 5% discount |
+| Premium | 1,000+ | 320kbps | Unlimited, offline, early access |
+| Whale | 10,000+ | FLAC/Lossless | All features, VIP, governance |
+
+### Database Models
+- User, Artist, Track, Play
+- Follow, Like, Comment
+- Playlist, PlaylistTrack
+- Purchase, Transaction
+- Download, DailyStats, Stake
+
+---
+
+## 🔗 Links
+- **Production**: https://ixxxi-app-production.up.railway.app
+- **GitHub**: https://github.com/flydecay1/ixxxi-app
+- **Database**: Railway PostgreSQL
+
+---
+
+## 📊 Metrics to Track
+- Daily Active Users (DAU)
+- Total Plays / Unique Listeners
+- Revenue (purchases, platform fees)
+- Artist Growth (new artists, verifications)
+- Token Holder Distribution
+- Completion Rate (% tracks finished)
 4. Build playlist CRUD
 
 ### Priority 2 (Next Week)
