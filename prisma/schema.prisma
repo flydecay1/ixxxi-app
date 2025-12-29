@@ -90,6 +90,10 @@ model Artist {
   tracks          Track[]
   broadcasts      Broadcast[]
   earlyAccessList EarlyAccess[]
+  releases        Release[]
+  withdrawals     Withdrawal[]
+  sentCollaborations     Collaboration[] @relation("CollaborationInviter")
+  receivedCollaborations Collaboration[] @relation("CollaborationInvitee")
 }
 
 // Music tracks
@@ -97,6 +101,11 @@ model Track {
   id              String   @id @default(cuid())
   artistId        String
   artist          Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  // Release info
+  releaseId       String?
+  release         Release? @relation(fields: [releaseId], references: [id], onDelete: SetNull)
+  trackNumber     Int?
   
   // Metadata
   title           String
@@ -187,8 +196,10 @@ model Track {
   purchases       Purchase[]
   comments        Comment[]
   downloads       Download[]
+  collaborations  Collaboration[]
   
   @@index([artistId])
+  @@index([releaseId])
   @@index([status])
   @@index([genre])
   @@index([playCount])
@@ -547,4 +558,87 @@ model EarlyAccess {
   
   @@unique([artistId, userId])
   @@index([artistId])
+}
+
+// Album/EP releases
+model Release {
+  id              String   @id @default(cuid())
+  artistId        String
+  artist          Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  title           String
+  type            String   @default("album") // "album" | "ep" | "single" | "compilation"
+  description     String?
+  coverUrl        String?
+  genre           String?
+  
+  trackCount      Int      @default(0)
+  
+  // Status
+  status          String   @default("draft") // "draft" | "processing" | "ready" | "scheduled" | "published" | "archived"
+  
+  // Dates
+  releaseDate     DateTime?
+  scheduledAt     DateTime?
+  publishedAt     DateTime?
+  uploadedAt      DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  tracks          Track[]
+  
+  @@index([artistId])
+  @@index([status])
+}
+
+// Artist withdrawals
+model Withdrawal {
+  id              String   @id @default(cuid())
+  artistId        String
+  artist          Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  amount          Float
+  fee             Float
+  netAmount       Float
+  currency        String   // "SOL" | "USDC"
+  
+  destinationWallet String
+  txSignature     String?
+  
+  status          String   @default("pending") // "pending" | "processing" | "completed" | "failed"
+  error           String?
+  
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+  
+  @@index([artistId])
+  @@index([status])
+}
+
+// Artist collaborations
+model Collaboration {
+  id              String   @id @default(cuid())
+  inviterId       String
+  inviter         Artist   @relation("CollaborationInviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  inviteeId       String
+  invitee         Artist   @relation("CollaborationInvitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  
+  trackId         String?
+  track           Track?   @relation(fields: [trackId], references: [id], onDelete: SetNull)
+  
+  message         String?
+  role            String   @default("featured") // "featured" | "producer" | "writer" | "remix"
+  royaltyShare    Float    @default(50)
+  
+  status          String   @default("pending") // "pending" | "accepted" | "declined"
+  acceptedAt      DateTime?
+  declinedAt      DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([inviterId])
+  @@index([inviteeId])
+  @@index([trackId])
 }
