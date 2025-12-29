@@ -421,22 +421,22 @@ export function useMerchCart() {
   const [ordering, setOrdering] = useState(false);
 
   const addToCart = (itemId: string, variantId: string, quantity = 1) => {
-    setCart(prev => {
-      const existing = prev.find(i => i.variantId === variantId);
+    setCart((prev: any) => {
+      const existing = prev.find((i: any) => i.variantId === variantId);
       if (existing) {
-        return prev.map(i => i.variantId === variantId ? { ...i, quantity: i.quantity + quantity } : i);
+        return prev.map((i: any) => i.variantId === variantId ? { ...i, quantity: i.quantity + quantity } : i);
       }
       return [...prev, { itemId, variantId, quantity }];
     });
   };
 
   const removeFromCart = (variantId: string) => {
-    setCart(prev => prev.filter(i => i.variantId !== variantId));
+    setCart((prev: any) => prev.filter((i: any) => i.variantId !== variantId));
   };
 
   const updateQuantity = (variantId: string, quantity: number) => {
     if (quantity <= 0) return removeFromCart(variantId);
-    setCart(prev => prev.map(i => i.variantId === variantId ? { ...i, quantity } : i));
+    setCart((prev: any) => prev.map((i: any) => i.variantId === variantId ? { ...i, quantity } : i));
   };
 
   const clearCart = () => setCart([]);
@@ -468,7 +468,7 @@ export function useMerchCart() {
 
   return {
     cart,
-    itemCount: cart.reduce((sum, i) => sum + i.quantity, 0),
+    itemCount: cart.reduce((sum: any, i: any) => sum + i.quantity, 0),
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -619,8 +619,8 @@ export function useMyTickets(userId: string | null) {
     fetchTickets();
   }, [userId]);
 
-  const upcomingTickets = tickets.filter(t => new Date(t.event.startDate) > new Date());
-  const pastTickets = tickets.filter(t => new Date(t.event.startDate) <= new Date());
+  const upcomingTickets = tickets.filter((t: any) => new Date(t.event.startDate) > new Date());
+  const pastTickets = tickets.filter((t: any) => new Date(t.event.startDate) <= new Date());
 
   return { tickets, upcomingTickets, pastTickets, loading };
 }

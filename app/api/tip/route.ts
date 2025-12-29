@@ -91,14 +91,14 @@ export async function GET(request: NextRequest) {
         take: 10,
       });
 
-      const supporterIds = topSupporters.map(s => s.senderId);
+      const supporterIds = topSupporters.map((s: any) => s.senderId);
       const supporterUsers = await prisma.user.findMany({
         where: { id: { in: supporterIds } },
         select: { id: true, username: true, avatarUrl: true },
       });
 
-      const supporters = topSupporters.map(s => ({
-        user: supporterUsers.find(u => u.id === s.senderId),
+      const supporters = topSupporters.map((s: any) => ({
+        user: supporterUsers.find((u: any) => u.id === s.senderId),
         totalTipped: s._sum.amount,
         tipCount: s._count,
       }));

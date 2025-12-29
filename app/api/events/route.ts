@@ -49,8 +49,8 @@ export async function GET(request: NextRequest) {
         _count: true,
       });
 
-      const tiers = event.ticketTiers.map(tier => {
-        const sold = ticketsSold.find(t => t.tierId === tier.id)?._count || 0;
+      const tiers = event.ticketTiers.map((tier: any) => {
+        const sold = ticketsSold.find((t: any) => t.tierId === tier.id)?._count || 0;
         return {
           ...tier,
           sold,
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
     });
 
     return NextResponse.json({
-      events: events.map(e => ({
+      events: events.map((e: any) => ({
         ...e,
         startingPrice: e.ticketTiers[0]?.price || 0,
         ticketsSold: e._count.tickets,

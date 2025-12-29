@@ -111,15 +111,15 @@ export async function GET(request: NextRequest) {
     });
 
     // Get amounts raised for each campaign
-    const campaignIds = campaigns.map(c => c.id);
+    const campaignIds = campaigns.map((c: any) => c.id);
     const pledgeSums = await prisma.crowdfundPledge.groupBy({
       by: ['campaignId'],
       where: { campaignId: { in: campaignIds } },
       _sum: { amount: true },
     });
 
-    const campaignsWithStats = campaigns.map(c => {
-      const pledgeSum = pledgeSums.find(p => p.campaignId === c.id);
+    const campaignsWithStats = campaigns.map((c: any) => {
+      const pledgeSum = pledgeSums.find((p: any) => p.campaignId === c.id);
       const amountRaised = pledgeSum?._sum.amount || 0;
       return {
         ...c,

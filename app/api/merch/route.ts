@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       items,
-      categories: categories.map(c => ({
+      categories: categories.map((c: any) => ({
         name: c.category,
         count: c._count,
       })),

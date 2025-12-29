@@ -185,9 +185,9 @@ export async function POST(request: NextRequest) {
     periodEnd.setMonth(periodEnd.getMonth() + 1);
 
     // Get price based on currency
-    const price = currency === 'SOL' 
-      ? tierConfig.priceSOL 
-      : tierConfig.priceUSDC;
+    const price = currency === 'SOL'
+      ? ('priceSOL' in tierConfig ? tierConfig.priceSOL : 0)
+      : ('priceUSDC' in tierConfig ? tierConfig.priceUSDC : 0);
 
     // Create subscription
     const subscription = await prisma.subscription.create({
