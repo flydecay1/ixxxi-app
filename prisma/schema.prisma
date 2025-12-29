@@ -47,6 +47,10 @@ model User {
   pushSubscriptions PushSubscription[]
   earlyAccessLists  EarlyAccess[]
   purchases         Purchase[]
+  
+  // Monetization relations
+  tips              Tip[]
+  pledges           CrowdfundPledge[]
 }
 
 // Artist profile - extends User
@@ -94,6 +98,12 @@ model Artist {
   withdrawals     Withdrawal[]
   sentCollaborations     Collaboration[] @relation("CollaborationInviter")
   receivedCollaborations Collaboration[] @relation("CollaborationInvitee")
+  
+  // Monetization relations
+  tips            Tip[]
+  campaigns       CrowdfundCampaign[]
+  merchItems      MerchItem[]
+  events          Event[]
 }
 
 // Music tracks
@@ -717,4 +727,302 @@ model StoryView {
   @@unique([storyId, viewerId])
   @@index([storyId])
   @@index([viewerId])
+}
+
+// ============ MONETIZATION ============
+
+// User subscriptions
+model Subscription {
+  id                  String   @id @default(cuid())
+  userId              String
+  
+  tier                String   // "basic" | "premium" | "whale"
+  status              String   @default("active") // "active" | "trialing" | "canceled" | "expired"
+  
+  currency            String   @default("SOL")
+  amount              Float
+  
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  cancelAtPeriodEnd   Boolean  @default(false)
+  
+  txSignature         String?
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  @@index([userId, status])
+  @@index([currentPeriodEnd])
+}
+
+// Artist tips
+model Tip {
+  id              String   @id @default(cuid())
+  senderId        String
+  sender          User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  artistId        String
+  artist          Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  trackId         String?  // Optional: tip for a specific track
+  
+  amount          Float
+  currency        String   @default("SOL")
+  message         String?
+  
+  txSignature     String?
+  isAnonymous     Boolean  @default(false)
+  
+  platformFee     Float    @default(0)
+  artistAmount    Float
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([senderId])
+  @@index([artistId, createdAt])
+}
+
+// Crowdfunding campaigns
+model CrowdfundCampaign {
+  id              String   @id @default(cuid())
+  artistId        String
+  artist          Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  title           String
+  description     String?
+  goalAmount      Float
+  currency        String   @default("SOL")
+  
+  releaseType     String   @default("album") // "album" | "ep" | "single" | "music_video" | "tour"
+  
+  coverUrl        String?
+  videoUrl        String?
+  
+  startDate       DateTime @default(now())
+  endDate         DateTime
+  
+  status          String   @default("active") // "draft" | "active" | "funded" | "failed" | "canceled"
+  isFeatured      Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  tiers           CrowdfundTier[]
+  pledges         CrowdfundPledge[]
+  
+  @@index([artistId])
+  @@index([status, endDate])
+}
+
+model CrowdfundTier {
+  id              String   @id @default(cuid())
+  campaignId      String
+  campaign        CrowdfundCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  name            String
+  amount          Float
+  description     String?
+  rewards         String?  // JSON array of reward strings
+  maxBackers      Int?     // null = unlimited
+  position        Int      @default(0)
+  
+  pledges         CrowdfundPledge[]
+  
+  @@index([campaignId])
+}
+
+model CrowdfundPledge {
+  id              String   @id @default(cuid())
+  campaignId      String
+  campaign        CrowdfundCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tierId          String?
+  tier            CrowdfundTier? @relation(fields: [tierId], references: [id], onDelete: SetNull)
+  
+  amount          Float
+  currency        String   @default("SOL")
+  txSignature     String?
+  
+  message         String?
+  isAnonymous     Boolean  @default(false)
+  
+  status          String   @default("pending") // "pending" | "completed" | "refunded"
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([campaignId])
+  @@index([userId])
+}
+
+// Merchandise
+model MerchItem {
+  id                  String   @id @default(cuid())
+  artistId            String
+  artist              Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  name                String
+  description         String?
+  category            String   // "apparel" | "vinyl" | "accessories" | "digital" | "collectible"
+  
+  basePrice           Float
+  currency            String   @default("USDC")
+  images              String?  // JSON array of URLs
+  
+  isLimited           Boolean  @default(false)
+  limitedQuantity     Int?
+  releaseDate         DateTime?
+  
+  tokenGated          Boolean  @default(false)
+  requiredTokenAmount Float?
+  holderDiscount      Float?   // percentage
+  
+  isFeatured          Boolean  @default(false)
+  status              String   @default("active") // "draft" | "active" | "archived"
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  variants            MerchVariant[]
+  
+  @@index([artistId])
+  @@index([category, status])
+}
+
+model MerchVariant {
+  id              String   @id @default(cuid())
+  itemId          String
+  item            MerchItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  name            String   // "S" | "M" | "L" | "Black" | etc
+  sku             String   @unique
+  price           Float
+  stock           Int      @default(0)
+  attributes      String?  // JSON: { size: "M", color: "Black" }
+  
+  orderItems      MerchOrderItem[]
+  
+  @@index([itemId])
+}
+
+model MerchOrder {
+  id              String   @id @default(cuid())
+  userId          String
+  
+  total           Float
+  currency        String   @default("USDC")
+  txSignature     String?
+  
+  shippingAddress String?  // JSON
+  trackingNumber  String?
+  
+  status          String   @default("pending") // "pending" | "confirmed" | "shipped" | "delivered" | "canceled"
+  
+  createdAt       DateTime @default(now())
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  
+  items           MerchOrderItem[]
+  
+  @@index([userId])
+  @@index([status])
+}
+
+model MerchOrderItem {
+  id              String   @id @default(cuid())
+  orderId         String
+  order           MerchOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId       String
+  variant         MerchVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  
+  quantity        Int
+  unitPrice       Float
+  total           Float
+  
+  @@index([orderId])
+}
+
+// Events and Ticketing
+model Event {
+  id                  String   @id @default(cuid())
+  artistId            String
+  artist              Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  
+  title               String
+  description         String?
+  type                String   // "concert" | "meetup" | "listening_party" | "livestream" | "festival"
+  
+  venue               String?
+  address             String?
+  city                String?
+  country             String?
+  latitude            Float?
+  longitude           Float?
+  
+  startDate           DateTime
+  endDate             DateTime?
+  timezone            String   @default("UTC")
+  
+  coverUrl            String?
+  
+  isTokenGated        Boolean  @default(false)
+  requiredTokenAmount Float?
+  holderEarlyAccess   Int?     // hours before general sale
+  holderDiscount      Float?   // percentage
+  
+  status              String   @default("draft") // "draft" | "published" | "canceled" | "completed"
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  ticketTiers         TicketTier[]
+  tickets             Ticket[]
+  
+  @@index([artistId])
+  @@index([startDate, status])
+}
+
+model TicketTier {
+  id              String   @id @default(cuid())
+  eventId         String
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  name            String   // "General Admission" | "VIP" | "Meet & Greet"
+  price           Float
+  currency        String   @default("USDC")
+  quantity        Int
+  description     String?
+  perks           String?  // JSON array
+  position        Int      @default(0)
+  
+  tickets         Ticket[]
+  
+  @@index([eventId])
+}
+
+model Ticket {
+  id              String   @id @default(cuid())
+  eventId         String
+  event           Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tierId          String
+  tier            TicketTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  userId          String
+  
+  ticketCode      String   @unique
+  qrCode          String
+  
+  price           Float
+  currency        String   @default("USDC")
+  txSignature     String?
+  
+  attendeeName    String?
+  attendeeEmail   String?
+  
+  status          String   @default("pending") // "pending" | "confirmed" | "checked_in" | "canceled"
+  checkedInAt     DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([eventId])
+  @@index([userId])
+  @@index([ticketCode])
 }

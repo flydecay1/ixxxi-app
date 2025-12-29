@@ -113,11 +113,22 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 - [ ] Fan clubs
 
 ### v1.7.0: Monetization
-- [ ] Subscription tiers
-- [ ] Tipping/donations
-- [ ] Crowdfunding for releases
-- [ ] Merch integration
-- [ ] Event ticketing
+- [x] Subscription tiers (Free/Basic/Premium/Whale)
+- [x] Tipping/donations (with anonymous option)
+- [x] Crowdfunding for releases (tiers, backers)
+- [x] Merch integration (variants, orders)
+- [x] Event ticketing (QR codes, check-in)
+
+---
+
+## 🚀 NEXT: v1.8.0+ Roadmap
+
+### v1.8.0: Live Features
+- [ ] Live streaming integration
+- [ ] Fan clubs / communities
+- [ ] Real-time chat rooms
+- [ ] Virtual concerts
+- [ ] Watch parties
 
 ---
 
@@ -223,6 +234,15 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 | `/api/playlist/collaborate` | GET/POST/DELETE | Collaborative playlists |
 | `/api/social/stories` | GET/POST/PATCH/DELETE | Ephemeral stories (24h) |
 
+### Monetization
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/subscription` | GET/POST/PATCH | Subscription management |
+| `/api/tip` | GET/POST | Artist tipping |
+| `/api/crowdfund` | GET/POST/PATCH | Crowdfunding campaigns |
+| `/api/merch` | GET/POST/PATCH/DELETE | Merchandise store |
+| `/api/events` | GET/POST/PATCH | Event ticketing |
+
 ---
 
 ## 🏗️ Architecture
@@ -253,6 +273,10 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 - Message, Broadcast, Notification, PushSubscription
 - Release, Withdrawal, Collaboration
 - Mention, Story, StoryView
+- Subscription, Tip
+- CrowdfundCampaign, CrowdfundTier, CrowdfundPledge
+- MerchItem, MerchVariant, MerchOrder, MerchOrderItem
+- Event, TicketTier, Ticket
 
 ---
 
