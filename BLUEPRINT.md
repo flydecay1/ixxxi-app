@@ -93,18 +93,17 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 ## 🚀 NEXT: v1.4.0+ Roadmap
 
 ### v1.4.0: Enhanced Player
-- [ ] Queue management
-- [ ] Shuffle and repeat modes
-- [ ] Crossfade between tracks
-- [ ] Lyrics display (synced)
-- [ ] Equalizer presets
+- [x] Queue management (add, reorder, clear)
+- [x] Shuffle and repeat modes
+- [x] Crossfade between tracks
+- [x] Lyrics display (synced)
+- [x] Equalizer presets (12 built-in)
 
 ### v1.5.0: Artist Tools
-- [ ] Batch upload (albums/EPs)
-- [ ] Release scheduling
-- [ ] Fan engagement dashboard
-- [ ] Revenue withdrawal
-- [ ] Collaboration invites
+- [x] Batch upload (albums/EPs)
+- [x] Release scheduling & management
+- [x] Revenue withdrawal (SOL/USDC)
+- [x] Collaboration invites
 
 ### v1.6.0: Social v2
 - [ ] Direct mentions (@username)
