@@ -291,11 +291,32 @@ model Playlist {
   description     String?
   coverUrl        String?
   isPublic        Boolean  @default(false)
+  isCollaborative Boolean  @default(false)
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   tracks          PlaylistTrack[]
+  collaborators   PlaylistCollaborator[]
+}
+
+// Playlist collaborators
+model PlaylistCollaborator {
+  id              String   @id @default(cuid())
+  playlistId      String
+  playlist        Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  userId          String
+  
+  role            String   @default("collaborator") // "collaborator" | "editor"
+  canAdd          Boolean  @default(true)
+  canRemove       Boolean  @default(false)
+  canReorder      Boolean  @default(true)
+  
+  invitedAt       DateTime @default(now())
+  
+  @@unique([playlistId, userId])
+  @@index([playlistId])
+  @@index([userId])
 }
 
 model PlaylistTrack {
@@ -408,9 +429,29 @@ model Comment {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
+  mentions        Mention[]
+  
   @@index([trackId, createdAt])
   @@index([userId])
   @@index([parentId])
+}
+
+// @Mentions in comments/messages
+model Mention {
+  id              String   @id @default(cuid())
+  commentId       String?
+  comment         Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  
+  mentionedUserId String   // User who was mentioned
+  mentionedById   String   // User who made the mention
+  
+  readAt          DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([mentionedUserId, readAt])
+  @@index([mentionedById])
+  @@index([commentId])
 }
 
 // Offline downloads
@@ -641,4 +682,39 @@ model Collaboration {
   @@index([inviterId])
   @@index([inviteeId])
   @@index([trackId])
+}
+
+// Ephemeral stories (24 hours)
+model Story {
+  id              String   @id @default(cuid())
+  userId          String
+  
+  type            String   // "image" | "video" | "track" | "text"
+  mediaUrl        String?  // URL to image/video
+  caption         String?
+  trackId         String?  // For track shares
+  backgroundColor String?  // For text stories
+  
+  expiresAt       DateTime // Auto-delete after 24h
+  
+  createdAt       DateTime @default(now())
+  
+  views           StoryView[]
+  
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+}
+
+// Story view tracking
+model StoryView {
+  id              String   @id @default(cuid())
+  storyId         String
+  story           Story    @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewerId        String
+  
+  createdAt       DateTime @default(now())
+  
+  @@unique([storyId, viewerId])
+  @@index([storyId])
+  @@index([viewerId])
 }

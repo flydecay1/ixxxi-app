@@ -106,9 +106,9 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 - [x] Collaboration invites
 
 ### v1.6.0: Social v2
-- [ ] Direct mentions (@username)
-- [ ] Shared playlists (collaborative)
-- [ ] Stories/highlights
+- [x] Direct mentions (@username)
+- [x] Shared playlists (collaborative)
+- [x] Stories/highlights (24h ephemeral)
 - [ ] Live streaming integration
 - [ ] Fan clubs
 
@@ -216,6 +216,13 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 | `/api/notifications/subscribe` | POST/DELETE | Push subscriptions |
 | `/api/notifications/send` | POST | Send push notification |
 
+### Social v2
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/social/mentions` | GET/POST/PATCH | @mentions system |
+| `/api/playlist/collaborate` | GET/POST/DELETE | Collaborative playlists |
+| `/api/social/stories` | GET/POST/PATCH/DELETE | Ephemeral stories (24h) |
+
 ---
 
 ## 🏗️ Architecture
@@ -240,9 +247,12 @@ Spotify meets Uniswap. Stream music, support artists, invest in culture.
 ### Database Models
 - User, Artist, Track, Play
 - Follow, Like, Comment
-- Playlist, PlaylistTrack
+- Playlist, PlaylistTrack, PlaylistCollaborator
 - Purchase, Transaction
 - Download, DailyStats, Stake
+- Message, Broadcast, Notification, PushSubscription
+- Release, Withdrawal, Collaboration
+- Mention, Story, StoryView
 
 ---
 

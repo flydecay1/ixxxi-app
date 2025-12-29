@@ -569,3 +569,322 @@ export function useActivityFeed(userId: string) {
 
   return { activities, loading, hasMore, loadMore, refresh: () => fetch_() };
 }
+
+// ============ MENTIONS ============
+
+interface Mention {
+  id: string;
+  mentionedBy: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    artist?: { name: string; isVerified: boolean };
+  };
+  comment?: {
+    id: string;
+    content: string;
+    track?: { id: string; title: string; coverUrl?: string };
+  };
+  readAt?: string;
+  createdAt: string;
+}
+
+export function useMentions(userId: string | null) {
+  const [mentions, setMentions] = useState<Mention[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  const fetchMentions = useCallback(async (unreadOnly = false) => {
+    if (!userId) return;
+
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ userId });
+      if (unreadOnly) params.append('unread', 'true');
+      
+      const res = await fetch(`/api/social/mentions?${params}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        setMentions(data.mentions || []);
+        setUnreadCount(data.unreadCount || 0);
+      }
+    } catch (err) {
+      console.error('Fetch mentions error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchMentions();
+  }, [fetchMentions]);
+
+  const markAsRead = useCallback(async (mentionIds?: string[]) => {
+    if (!userId) return;
+
+    await fetch('/api/social/mentions', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, mentionIds }),
+    });
+
+    fetchMentions();
+  }, [userId, fetchMentions]);
+
+  return { mentions, unreadCount, loading, markAsRead, refresh: fetchMentions };
+}
+
+export function extractMentions(text: string): string[] {
+  const regex = /@([a-zA-Z0-9_]+)/g;
+  const matches = text.match(regex);
+  if (!matches) return [];
+  return [...new Set(matches.map(m => m.substring(1)))];
+}
+
+// ============ STORIES ============
+
+interface StoryUser {
+  id: string;
+  username: string;
+  avatarUrl?: string;
+  artistName?: string;
+  isVerified: boolean;
+}
+
+interface Story {
+  id: string;
+  type: 'image' | 'video' | 'track' | 'text';
+  mediaUrl?: string;
+  caption?: string;
+  trackId?: string;
+  createdAt: string;
+  expiresAt: string;
+  viewed?: boolean;
+}
+
+interface StoryFeedItem {
+  user: StoryUser;
+  storyCount: number;
+  hasUnviewed: boolean;
+  previewUrl?: string;
+}
+
+export function useStories(viewerId: string | null) {
+  const [feed, setFeed] = useState<StoryFeedItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchFeed = useCallback(async () => {
+    if (!viewerId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/social/stories?viewerId=${viewerId}&type=feed`);
+      const data = await res.json();
+      if (res.ok) setFeed(data.storyFeed || []);
+    } catch (err) {
+      console.error('Fetch stories error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [viewerId]);
+
+  useEffect(() => { fetchFeed(); }, [fetchFeed]);
+
+  return {
+    feed,
+    loading,
+    refresh: fetchFeed,
+    hasUnviewedStories: feed.some(f => f.hasUnviewed),
+  };
+}
+
+export function useUserStories(userId: string | null, viewerId?: string | null) {
+  const [stories, setStories] = useState<Story[]>([]);
+  const [user, setUser] = useState<StoryUser | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const fetchStories = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ userId, type: 'user' });
+      if (viewerId) params.append('viewerId', viewerId);
+      const res = await fetch(`/api/social/stories?${params}`);
+      const data = await res.json();
+      if (res.ok) {
+        setStories(data.stories || []);
+        setUser(data.user || null);
+      }
+    } catch (err) {
+      console.error('Fetch user stories error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, viewerId]);
+
+  useEffect(() => { fetchStories(); setCurrentIndex(0); }, [fetchStories]);
+
+  const markViewed = useCallback(async (storyId: string) => {
+    if (!viewerId) return;
+    await fetch('/api/social/stories', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ storyId, viewerId }),
+    });
+  }, [viewerId]);
+
+  const next = useCallback(() => {
+    if (currentIndex < stories.length - 1) { setCurrentIndex(p => p + 1); return true; }
+    return false;
+  }, [currentIndex, stories.length]);
+
+  const previous = useCallback(() => {
+    if (currentIndex > 0) { setCurrentIndex(p => p - 1); return true; }
+    return false;
+  }, [currentIndex]);
+
+  return {
+    stories, user, loading,
+    currentStory: stories[currentIndex] || null,
+    currentIndex, totalStories: stories.length,
+    next, previous, markViewed, refresh: fetchStories,
+  };
+}
+
+export function useMyStories(userId: string | null) {
+  const [stories, setStories] = useState<(Story & { viewCount: number; isExpired: boolean })[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [posting, setPosting] = useState(false);
+
+  const fetchStories = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/social/stories?userId=${userId}&type=own`);
+      const data = await res.json();
+      if (res.ok) setStories(data.stories || []);
+    } catch (err) {
+      console.error('Fetch my stories error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => { fetchStories(); }, [fetchStories]);
+
+  const createStory = useCallback(async (params: {
+    type: 'image' | 'video' | 'track' | 'text';
+    mediaUrl?: string;
+    caption?: string;
+    trackId?: string;
+  }) => {
+    if (!userId) return null;
+    setPosting(true);
+    try {
+      const res = await fetch('/api/social/stories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ...params }),
+      });
+      const data = await res.json();
+      if (res.ok) { fetchStories(); return data.story; }
+      return null;
+    } catch (err) {
+      console.error('Create story error:', err);
+      return null;
+    } finally {
+      setPosting(false);
+    }
+  }, [userId, fetchStories]);
+
+  const deleteStory = useCallback(async (storyId: string) => {
+    if (!userId) return false;
+    try {
+      const res = await fetch('/api/social/stories', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storyId, userId }),
+      });
+      if (res.ok) { fetchStories(); return true; }
+      return false;
+    } catch (err) {
+      console.error('Delete story error:', err);
+      return false;
+    }
+  }, [userId, fetchStories]);
+
+  return {
+    stories, loading, posting, createStory, deleteStory, refresh: fetchStories,
+    activeCount: stories.filter(s => !s.isExpired).length,
+  };
+}
+
+// ============ COLLABORATIVE PLAYLISTS ============
+
+interface Collaborator {
+  id: string;
+  user: { id: string; username: string; avatarUrl?: string };
+  role: string;
+  canAdd: boolean;
+  canRemove: boolean;
+  canReorder: boolean;
+}
+
+export function usePlaylistCollaborators(playlistId: string | null) {
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [owner, setOwner] = useState<any>(null);
+  const [isCollaborative, setIsCollaborative] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const fetchCollaborators = useCallback(async () => {
+    if (!playlistId) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/playlist/collaborate?playlistId=${playlistId}`);
+      const data = await res.json();
+      if (res.ok) {
+        setCollaborators(data.collaborators || []);
+        setOwner(data.owner);
+        setIsCollaborative(data.isCollaborative);
+      }
+    } catch (err) {
+      console.error('Fetch collaborators error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [playlistId]);
+
+  useEffect(() => { fetchCollaborators(); }, [fetchCollaborators]);
+
+  const inviteCollaborator = useCallback(async (ownerId: string, inviteeId: string, permissions?: any) => {
+    if (!playlistId) return false;
+    try {
+      const res = await fetch('/api/playlist/collaborate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playlistId, ownerId, inviteeId, ...permissions }),
+      });
+      if (res.ok) { fetchCollaborators(); return true; }
+      return false;
+    } catch (err) { return false; }
+  }, [playlistId, fetchCollaborators]);
+
+  const removeCollaborator = useCallback(async (userId: string, collaboratorUserId?: string) => {
+    if (!playlistId) return false;
+    try {
+      const res = await fetch('/api/playlist/collaborate', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playlistId, userId, collaboratorUserId }),
+      });
+      if (res.ok) { fetchCollaborators(); return true; }
+      return false;
+    } catch (err) { return false; }
+  }, [playlistId, fetchCollaborators]);
+
+  return {
+    collaborators, owner, isCollaborative, loading,
+    inviteCollaborator, removeCollaborator, refresh: fetchCollaborators,
+  };
+}
