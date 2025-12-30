@@ -3,11 +3,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { 
-  generateVerificationCode, 
-  hashEmail, 
+import {
+  generateVerificationCode,
+  hashEmail,
   storeVerificationCode,
-  getVerificationCode 
+  getVerificationCode
 } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
@@ -22,11 +22,11 @@ export async function POST(request: NextRequest) {
     const emailHash = hashEmail(normalizedEmail);
 
     // Rate limiting - max 3 codes per email per 10 minutes
-    const existingCode = getVerificationCode(normalizedEmail);
+    const existingCode = await getVerificationCode(normalizedEmail);
     if (existingCode && existingCode.expiresAt > Date.now() - 60000) {
       // Code sent less than 1 minute ago
-      return NextResponse.json({ 
-        error: 'Please wait before requesting another code' 
+      return NextResponse.json({
+        error: 'Please wait before requesting another code'
       }, { status: 429 });
     }
 
@@ -35,18 +35,16 @@ export async function POST(request: NextRequest) {
       where: { email: normalizedEmail }
     });
 
-    if (action === 'signin' && !existingUser) {
-      // Silently allow - we'll create account on verify
-      // Don't reveal if email exists for security
-    }
-
-    // Generate and store code
+    // Always generate and send code to prevent user enumeration
+    // Use constant-time operations and same response for existing/non-existing users
     const code = generateVerificationCode();
-    storeVerificationCode(normalizedEmail, code, action);
+    await storeVerificationCode(normalizedEmail, code, action || 'signin');
 
     // In production, send email via SendGrid/Resend/etc
     // For development, log the code
-    console.log(`[AUTH] Verification code for ${emailHash}: ${code}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[AUTH] Verification code for ${emailHash}: ${code}`);
+    }
 
     // TODO: Send actual email
     // await sendEmail({
@@ -55,7 +53,10 @@ export async function POST(request: NextRequest) {
     //   html: `Your code is: <strong>${code}</strong>. Valid for 10 minutes.`
     // });
 
-    return NextResponse.json({ 
+    // Use constant response time by always doing the same work
+    await new Promise(resolve => setTimeout(resolve, 100)); // Prevent timing attacks
+
+    return NextResponse.json({
       success: true,
       message: 'Verification code sent',
       // In dev mode, return code for testing

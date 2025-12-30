@@ -100,17 +100,18 @@ export async function createSOLPaymentTransaction(
   const recipient = new PublicKey(recipientWallet);
   
   const totalLamports = Math.round(amountSOL * LAMPORTS_PER_SOL);
-  
+
   let artistAmount = totalLamports;
   let feeAmount = 0;
-  
+
   const transaction = new Transaction();
-  
-  // Calculate platform fee
+
+  // Calculate platform fee - fix rounding to ensure total equals sum of parts
   if (includePlatformFee && PLATFORM_FEE_WALLET) {
-    feeAmount = Math.round(totalLamports * (PLATFORM_FEE_PERCENT / 100));
+    feeAmount = Math.floor(totalLamports * (PLATFORM_FEE_PERCENT / 100));
+    // Artist gets the remainder to ensure totalLamports = artistAmount + feeAmount
     artistAmount = totalLamports - feeAmount;
-    
+
     // Add platform fee transfer
     transaction.add(
       SystemProgram.transfer({
@@ -120,7 +121,7 @@ export async function createSOLPaymentTransaction(
       })
     );
   }
-  
+
   // Add artist payment
   transaction.add(
     SystemProgram.transfer({
@@ -160,18 +161,19 @@ export async function createUSDCPaymentTransaction(
   
   // USDC has 6 decimals
   const totalAmount = Math.round(amountUSDC * 1_000_000);
-  
+
   let artistAmount = totalAmount;
   let feeAmount = 0;
-  
+
   const transaction = new Transaction();
-  
+
   // Get payer's USDC token account
   const payerATA = await getAssociatedTokenAddress(usdcMint, payer);
-  
-  // Calculate platform fee
+
+  // Calculate platform fee - fix rounding to ensure total equals sum of parts
   if (includePlatformFee && PLATFORM_FEE_WALLET) {
-    feeAmount = Math.round(totalAmount * (PLATFORM_FEE_PERCENT / 100));
+    feeAmount = Math.floor(totalAmount * (PLATFORM_FEE_PERCENT / 100));
+    // Artist gets the remainder to ensure totalAmount = artistAmount + feeAmount
     artistAmount = totalAmount - feeAmount;
     
     const feeWallet = new PublicKey(PLATFORM_FEE_WALLET);

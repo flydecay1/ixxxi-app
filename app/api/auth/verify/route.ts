@@ -13,9 +13,23 @@ function generateSessionToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
 
+// Validate encryption key exists
+function getEncryptionKey(): Buffer {
+  const keyString = process.env.WALLET_ENCRYPTION_KEY;
+
+  if (!keyString || keyString === 'dev-key-change-in-prod') {
+    throw new Error(
+      'WALLET_ENCRYPTION_KEY environment variable not set or using default value. ' +
+      'Set a secure 32-byte hex string in production.'
+    );
+  }
+
+  return crypto.scryptSync(keyString, 'salt', 32);
+}
+
 // Encrypt private key for storage (in production, use KMS)
 function encryptPrivateKey(privateKey: Uint8Array, userId: string): string {
-  const key = crypto.scryptSync(process.env.WALLET_ENCRYPTION_KEY || 'dev-key-change-in-prod', 'salt', 32);
+  const key = getEncryptionKey();
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
   const encrypted = Buffer.concat([cipher.update(Buffer.from(privateKey)), cipher.final()]);
@@ -33,14 +47,14 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email.toLowerCase().trim();
 
     // Check verification code
-    const stored = getVerificationCode(normalizedEmail);
-    
+    const stored = await getVerificationCode(normalizedEmail);
+
     if (!stored) {
       return NextResponse.json({ error: 'No verification code found. Please request a new one.' }, { status: 400 });
     }
 
     if (Date.now() > stored.expiresAt) {
-      deleteVerificationCode(normalizedEmail);
+      await deleteVerificationCode(normalizedEmail);
       return NextResponse.json({ error: 'Code expired. Please request a new one.' }, { status: 400 });
     }
 
@@ -49,7 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Code is valid - delete it
-    deleteVerificationCode(normalizedEmail);
+    await deleteVerificationCode(normalizedEmail);
 
     // Find or create user
     let user = await prisma.user.findFirst({
@@ -61,7 +75,7 @@ export async function POST(request: NextRequest) {
       // Create new user with embedded wallet
       const keypair = Keypair.generate();
       const walletAddress = keypair.publicKey.toBase58();
-      
+
       user = await prisma.user.create({
         data: {
           email: normalizedEmail,
@@ -128,6 +142,14 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Verify error:', error);
+
+    // Better error messages for security issues
+    if (error instanceof Error && error.message.includes('WALLET_ENCRYPTION_KEY')) {
+      return NextResponse.json({
+        error: 'Server configuration error. Please contact support.'
+      }, { status: 500 });
+    }
+
     return NextResponse.json({ error: 'Verification failed' }, { status: 500 });
   }
 }

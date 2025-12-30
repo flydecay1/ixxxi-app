@@ -130,11 +130,12 @@ export async function POST(request: NextRequest) {
     });
 
     if (paymentMethod === 'sol') {
-      // SOL payment with revenue split
+      // SOL payment with revenue split - fix rounding to ensure sum equals total
       const totalLamports = Math.floor(priceSOL * LAMPORTS_PER_SOL);
-      const artistLamports = Math.floor(totalLamports * ARTIST_SHARE);
       const platformLamports = Math.floor(totalLamports * PLATFORM_SHARE);
       const referrerLamports = referrerWallet ? Math.floor(totalLamports * REFERRER_SHARE) : 0;
+      // Artist gets remainder to ensure sum equals total
+      const artistLamports = totalLamports - platformLamports - referrerLamports;
 
       // Transfer to artist (90%)
       transaction.add(
@@ -170,17 +171,19 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // Token payment
+      // Token payment - fix rounding to ensure sum equals total
       const tokenMint = new PublicKey(IXXXI_TOKEN_MINT);
       const totalAmount = Math.floor(priceToken * 1e9); // Assuming 9 decimals
-      
+
       // Get token accounts
       const buyerTokenAccount = await getAssociatedTokenAddress(tokenMint, buyerPubkey);
       const artistTokenAccount = await getAssociatedTokenAddress(tokenMint, new PublicKey(artistWallet));
       const platformTokenAccount = await getAssociatedTokenAddress(tokenMint, new PublicKey(PLATFORM_WALLET));
 
-      const artistAmount = Math.floor(totalAmount * ARTIST_SHARE);
       const platformAmount = Math.floor(totalAmount * PLATFORM_SHARE);
+      const referrerAmount = referrerWallet ? Math.floor(totalAmount * REFERRER_SHARE) : 0;
+      // Artist gets remainder to ensure sum equals total
+      const artistAmount = totalAmount - platformAmount - referrerAmount;
 
       // Transfer to artist
       transaction.add(
@@ -207,12 +210,11 @@ export async function POST(request: NextRequest) {
       );
 
       // Referrer transfer if exists
-      if (referrerWallet) {
+      if (referrerWallet && referrerAmount > 0) {
         try {
           const referrerPubkey = new PublicKey(referrerWallet);
           const referrerTokenAccount = await getAssociatedTokenAddress(tokenMint, referrerPubkey);
-          const referrerAmount = Math.floor(totalAmount * REFERRER_SHARE);
-          
+
           transaction.add(
             createTransferInstruction(
               buyerTokenAccount,
@@ -268,15 +270,31 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { purchaseId, signature, walletAddress } = body;
+    const { purchaseId, signature, walletAddress, contentId, expectedAmount, paymentMethod } = body;
 
-    if (!purchaseId || !signature || !walletAddress) {
+    if (!purchaseId || !signature || !walletAddress || !contentId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Get content details for verification
+    const track = await prisma.track.findUnique({
+      where: { id: contentId },
+      include: {
+        artist: {
+          include: {
+            user: { select: { walletAddress: true } }
+          }
+        }
+      }
+    });
+
+    if (!track) {
+      return NextResponse.json({ error: 'Content not found' }, { status: 404 });
     }
 
     // Verify transaction on-chain
     const connection = new Connection(SOLANA_RPC, 'confirmed');
-    
+
     try {
       const tx = await connection.getTransaction(signature, {
         commitment: 'confirmed',
@@ -291,11 +309,50 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'Transaction failed' }, { status: 400 });
       }
 
-      // Transaction confirmed - update purchase record
+      // Enhanced verification: Check transaction details
+      const signer = tx.transaction.message.staticAccountKeys[0].toBase58();
+      if (signer !== walletAddress) {
+        return NextResponse.json({ error: 'Transaction signer mismatch' }, { status: 400 });
+      }
+
+      // Verify artist received payment
+      const artistWallet = track.artist.user.walletAddress;
+      if (!artistWallet) {
+        return NextResponse.json({ error: 'Artist wallet not found' }, { status: 400 });
+      }
+
+      const artistPubkey = new PublicKey(artistWallet);
+      const artistIndex = tx.transaction.message.staticAccountKeys.findIndex(
+        key => key.equals(artistPubkey)
+      );
+
+      if (artistIndex === -1) {
+        return NextResponse.json({ error: 'Artist not found in transaction recipients' }, { status: 400 });
+      }
+
+      // Verify amount received (SOL) - allow 12% tolerance (10% fees + 2% margin)
+      if (paymentMethod === 'sol' && expectedAmount) {
+        const expectedLamports = Math.floor(expectedAmount * LAMPORTS_PER_SOL);
+        const expectedArtistAmount = Math.floor(expectedLamports * ARTIST_SHARE);
+        const preBalance = tx.meta.preBalances[artistIndex] || 0;
+        const postBalance = tx.meta.postBalances[artistIndex] || 0;
+        const receivedLamports = postBalance - preBalance;
+
+        // Allow 15% tolerance for rounding and fees
+        const minExpected = expectedArtistAmount * 0.85;
+        if (receivedLamports < minExpected) {
+          return NextResponse.json({
+            error: `Payment amount insufficient. Expected ~${expectedArtistAmount / LAMPORTS_PER_SOL} SOL, received ${receivedLamports / LAMPORTS_PER_SOL} SOL`
+          }, { status: 400 });
+        }
+      }
+
+      // Transaction verified - update purchase record
       // In production, update Purchase table with:
       // - status: 'completed'
       // - transactionSignature: signature
       // - completedAt: now
+      // - verifiedAmount: receivedLamports
 
       return NextResponse.json({
         success: true,

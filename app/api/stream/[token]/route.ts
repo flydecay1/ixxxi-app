@@ -51,7 +51,7 @@ export async function GET(
   const { contentId, userId, contentType, quality } = verification.params;
   
   // 3. Rate limiting
-  const rateLimit = checkStreamRateLimit(userId);
+  const rateLimit = await checkStreamRateLimit(userId);
   if (!rateLimit.allowed) {
     return NextResponse.json(
       { error: 'Rate limit exceeded', retryAfter: rateLimit.retryAfter },
@@ -136,12 +136,12 @@ export async function POST(
     const { contentId, userId } = verification.params;
     
     // Check for suspicious behavior
-    const behavior = detectSuspiciousBehavior(userId, contentId, duration);
-    
+    const behavior = await detectSuspiciousBehavior(userId, contentId, duration);
+
     if (behavior.suspicious) {
       // Log suspicious activity
       console.warn(`[DRM] Suspicious activity from user ${userId}: ${behavior.reason}`);
-      
+
       // Could trigger additional verification, rate limiting, or account review
       // For now, just log it
     }

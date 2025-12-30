@@ -235,8 +235,9 @@ model Play {
   
   createdAt       DateTime @default(now())
   
-  @@index([trackId, createdAt])
-  @@index([userId, createdAt])
+  @@index([trackId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // Curation stakes - users bet on tracks
@@ -284,11 +285,13 @@ model Like {
   track           Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   createdAt       DateTime @default(now())
-  
+
   @@unique([trackId, userId])
+  @@index([trackId])
   @@index([userId])
+  @@index([createdAt])
 }
 
 // Playlists

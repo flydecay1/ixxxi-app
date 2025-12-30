@@ -75,16 +75,17 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Update track and artist play counts
-    await prisma.track.update({
-      where: { id: trackId },
-      data: { playCount: { increment: 1 } }
-    });
-
-    await prisma.artist.update({
-      where: { id: track.artistId },
-      data: { totalPlays: { increment: 1 } }
-    });
+    // Update track and artist play counts atomically to prevent race conditions
+    await prisma.$transaction([
+      prisma.track.update({
+        where: { id: trackId },
+        data: { playCount: { increment: 1 } }
+      }),
+      prisma.artist.update({
+        where: { id: track.artistId },
+        data: { totalPlays: { increment: 1 } }
+      })
+    ]);
 
     // Update global daily stats
     const today = new Date();
