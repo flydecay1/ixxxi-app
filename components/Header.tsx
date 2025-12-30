@@ -42,36 +42,42 @@ export default function Header() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 w-full h-16 bg-black/80 backdrop-blur-xl border-b border-gray-800 flex items-center justify-between px-4 md:px-6 z-40">
+      <header className="fixed top-0 left-0 w-full h-16 glass-dark backdrop-blur-2xl border-b border-white/10 flex items-center justify-between px-4 md:px-6 z-40 shadow-lg">
         {/* LEFT: LOGO */}
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition">
-          <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-lg flex items-center justify-center">
+        <Link href="/" className="flex items-center gap-3 hover:scale-105 transition-transform duration-300 group">
+          <div className="w-9 h-9 bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-shadow">
             <span className="text-white font-bold text-sm">IX</span>
           </div>
-          <span className="text-white font-bold text-lg hidden sm:block">IXXXI</span>
+          <span className="text-white font-bold text-lg hidden sm:block gradient-text">IXXXI</span>
         </Link>
 
         {/* CENTER: NAV (Desktop) */}
-        <nav className="hidden md:flex items-center gap-5">
-          <Link href="/discover" className="text-gray-400 hover:text-white transition text-sm">
-            Discover
+        <nav className="hidden md:flex items-center gap-6">
+          <Link href="/discover" className="text-gray-400 hover:text-white transition-colors duration-200 text-sm font-medium relative group">
+            <span>Discover</span>
+            <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500 group-hover:w-full transition-all duration-300"></div>
           </Link>
-          <Link href="/charts" className="text-gray-400 hover:text-white transition text-sm">
-            Charts
+          <Link href="/charts" className="text-gray-400 hover:text-white transition-colors duration-200 text-sm font-medium relative group">
+            <span>Charts</span>
+            <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500 group-hover:w-full transition-all duration-300"></div>
           </Link>
-          <Link href="/trade" className="text-gray-400 hover:text-white transition text-sm flex items-center gap-1">
+          <Link href="/trade" className="text-gray-400 hover:text-white transition-colors duration-200 text-sm font-medium flex items-center gap-2 relative group">
             <span>Trade</span>
-            <span className="px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded">NEW</span>
+            <span className="px-2 py-0.5 text-[9px] font-semibold bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-400 rounded-full ring-1 ring-cyan-500/30">NEW</span>
+            <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500 group-hover:w-full transition-all duration-300"></div>
           </Link>
-          <Link href="/tv" className="text-gray-400 hover:text-white transition text-sm">
-            TV
+          <Link href="/tv" className="text-gray-400 hover:text-white transition-colors duration-200 text-sm font-medium relative group">
+            <span>TV</span>
+            <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500 group-hover:w-full transition-all duration-300"></div>
           </Link>
-          <Link href="/pricing" className="text-gray-400 hover:text-white transition text-sm">
-            Pricing
+          <Link href="/pricing" className="text-gray-400 hover:text-white transition-colors duration-200 text-sm font-medium relative group">
+            <span>Pricing</span>
+            <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500 group-hover:w-full transition-all duration-300"></div>
           </Link>
           {user?.isArtist && (
-            <Link href="/artist/dashboard" className="text-cyan-400 hover:text-cyan-300 transition text-sm font-medium">
-              Dashboard
+            <Link href="/artist/dashboard" className="text-cyan-400 hover:text-cyan-300 transition-colors duration-200 text-sm font-semibold relative group">
+              <span>Dashboard</span>
+              <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500"></div>
             </Link>
           )}
         </nav>
@@ -83,10 +89,10 @@ export default function Header() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center gap-2 px-3 py-2 rounded-full bg-gray-800 hover:bg-gray-700 transition"
+                className="flex items-center gap-2.5 px-3 py-2 rounded-full glass border border-white/10 hover:bg-white/5 transition-all duration-300 hover:scale-105"
               >
                 {/* Avatar */}
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-xs">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 via-purple-500 to-pink-500 flex items-center justify-center text-xs shadow-lg shadow-cyan-500/20 ring-2 ring-white/10">
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
                   ) : (
@@ -98,21 +104,21 @@ export default function Header() {
                   {user.username}
                 </span>
                 {/* Dropdown arrow */}
-                <svg className={`w-4 h-4 text-gray-400 transition ${showDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
               {/* Dropdown */}
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-800 rounded-xl shadow-xl overflow-hidden">
+                <div className="absolute right-0 mt-3 w-64 glass-strong border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-scale-in">
                   {/* User info */}
-                  <div className="p-4 border-b border-gray-800">
-                    <p className="text-white font-medium truncate">{user.username}</p>
-                    <p className="text-gray-500 text-xs truncate">{user.email || `${user.walletAddress.slice(0, 8)}...`}</p>
-                    <div className={`inline-flex items-center gap-1 mt-2 px-2 py-0.5 rounded-full text-xs ${currentTier.color} bg-gray-800`}>
+                  <div className="p-4 border-b border-white/10 bg-gradient-to-br from-cyan-500/5 to-purple-500/5">
+                    <p className="text-white font-semibold truncate">{user.username}</p>
+                    <p className="text-gray-400 text-xs truncate mt-1">{user.email || `${user.walletAddress.slice(0, 8)}...`}</p>
+                    <div className={`inline-flex items-center gap-1.5 mt-3 px-3 py-1.5 rounded-full text-xs ${currentTier.color} glass ring-1 ring-white/10`}>
                       <span>{currentTier.icon}</span>
-                      <span>{currentTier.label}</span>
+                      <span className="font-medium">{currentTier.label}</span>
                     </div>
                   </div>
 
@@ -121,14 +127,14 @@ export default function Header() {
                     <Link
                       href={`/profile/${user.walletAddress}`}
                       onClick={() => setShowDropdown(false)}
-                      className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg text-sm transition"
+                      className="block px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl text-sm transition-all duration-200 font-medium"
                     >
                       My Profile
                     </Link>
                     <Link
                       href="/library"
                       onClick={() => setShowDropdown(false)}
-                      className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg text-sm transition"
+                      className="block px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl text-sm transition-all duration-200 font-medium"
                     >
                       My Library
                     </Link>
@@ -136,7 +142,7 @@ export default function Header() {
                       <Link
                         href="/artist/dashboard"
                         onClick={() => setShowDropdown(false)}
-                        className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg text-sm transition"
+                        className="block px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl text-sm transition-all duration-200 font-medium"
                       >
                         Artist Dashboard
                       </Link>
@@ -144,7 +150,7 @@ export default function Header() {
                       <Link
                         href="/artist/apply"
                         onClick={() => setShowDropdown(false)}
-                        className="block px-3 py-2 text-cyan-400 hover:text-cyan-300 hover:bg-gray-800 rounded-lg text-sm transition"
+                        className="block px-4 py-2.5 text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 rounded-xl text-sm transition-all duration-200 font-medium"
                       >
                         Become an Artist
                       </Link>
@@ -152,7 +158,7 @@ export default function Header() {
                     <Link
                       href="/settings"
                       onClick={() => setShowDropdown(false)}
-                      className="block px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg text-sm transition"
+                      className="block px-4 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl text-sm transition-all duration-200 font-medium"
                     >
                       Settings
                     </Link>
@@ -160,11 +166,11 @@ export default function Header() {
 
                   {/* Upgrade CTA */}
                   {user.tier === 'free' && (
-                    <div className="p-2 border-t border-gray-800">
+                    <div className="p-2 border-t border-white/10">
                       <Link
                         href="/upgrade"
                         onClick={() => setShowDropdown(false)}
-                        className="block px-3 py-2 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-400 hover:from-cyan-500/30 hover:to-purple-500/30 rounded-lg text-sm text-center transition"
+                        className="block px-4 py-3 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-400 hover:from-cyan-500/30 hover:to-purple-500/30 rounded-xl text-sm text-center transition-all duration-200 font-semibold ring-1 ring-cyan-500/30 hover:ring-cyan-500/50"
                       >
                         ✨ Upgrade to Premium
                       </Link>
@@ -172,10 +178,10 @@ export default function Header() {
                   )}
 
                   {/* Logout */}
-                  <div className="p-2 border-t border-gray-800">
+                  <div className="p-2 border-t border-white/10">
                     <button
                       onClick={() => { logout(); setShowDropdown(false); }}
-                      className="w-full px-3 py-2 text-red-400 hover:text-red-300 hover:bg-gray-800 rounded-lg text-sm text-left transition"
+                      className="w-full px-4 py-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl text-sm text-left transition-all duration-200 font-medium"
                     >
                       Sign out
                     </button>
@@ -188,15 +194,16 @@ export default function Header() {
             <>
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="px-4 py-2 text-white text-sm font-medium hover:text-cyan-400 transition"
+                className="px-4 py-2 text-gray-300 text-sm font-medium hover:text-white transition-colors duration-200"
               >
                 Sign in
               </button>
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-sm font-medium rounded-full hover:opacity-90 transition"
+                className="relative px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-purple-500 text-white text-sm font-semibold rounded-full hover:shadow-lg hover:shadow-cyan-500/30 hover:scale-105 transition-all duration-300 overflow-hidden group"
               >
-                Get started
+                <span className="relative z-10">Get started</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
               
               {/* Hidden wallet button for power users (shown on Ctrl+Shift+W) */}

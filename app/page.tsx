@@ -179,7 +179,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-black text-green-500 font-mono overflow-hidden">
+    <div className="flex flex-col h-screen bg-black text-white overflow-hidden">
       <Header />
 
       {/* Command Palette */}
@@ -201,127 +201,138 @@ export default function Home() {
       />
 
       <div className="flex flex-col md:flex-row flex-1 pt-16 pb-20 overflow-hidden">
-        
+
         {/* LEFT COLUMN: ACTION PANEL */}
-        <div className="md:w-[380px] w-full md:h-full h-[50vh] border-r border-green-500/20 flex flex-col bg-black/95 z-20 overflow-hidden">
-          
+        <div className="md:w-[420px] w-full md:h-full h-[50vh] border-r border-white/5 flex flex-col glass-dark z-20 overflow-hidden backdrop-blur-2xl">
+
           {/* Header with Clock */}
-          <div className="p-3 border-b border-green-500/20 bg-green-900/10">
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center gap-2 text-[10px]">
-                <span className="font-bold">IXXXI PROTOCOL</span>
+          <div className="p-4 border-b border-white/10 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5">
+            <div className="flex justify-between items-center mb-3">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 animate-pulse"></div>
+                  <span className="font-semibold text-sm gradient-text tracking-wide">IXXXI PROTOCOL</span>
+                </div>
                 {isOnline ? (
-                  <Wifi size={10} className="text-green-500" />
+                  <Wifi size={14} className="text-cyan-400" />
                 ) : (
-                  <WifiOff size={10} className="text-red-500" />
+                  <WifiOff size={14} className="text-red-400" />
                 )}
-                <span className={`${isOnline ? 'animate-pulse text-green-400' : 'text-red-500'}`}>
-                  ● {isOnline ? 'LIVE' : 'OFFLINE'}
-                </span>
               </div>
-              <LiveClock className="text-xs" showDate={false} />
+              <LiveClock className="text-xs text-gray-400 font-mono" showDate={false} />
             </div>
-            
+
             {/* Quick Action Buttons */}
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              <Link 
+            <div className="grid grid-cols-2 gap-3">
+              <Link
                 href="/artist/apply"
-                className="flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-purple-500/20 to-cyan-500/20 border border-purple-500/30 rounded-lg hover:border-purple-400 transition-all group"
+                className="group relative overflow-hidden glass rounded-xl p-3.5 hover:bg-white/10 transition-all duration-300"
               >
-                <Upload size={16} className="text-purple-400" />
-                <span className="text-sm text-purple-400 font-medium">Upload</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative flex items-center justify-center gap-2">
+                  <Upload size={16} className="text-purple-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm text-purple-400 font-medium">Upload</span>
+                </div>
               </Link>
-              <Link 
+              <Link
                 href="/tv"
-                className="flex items-center justify-center gap-2 p-3 bg-gradient-to-r from-cyan-500/20 to-green-500/20 border border-cyan-500/30 rounded-lg hover:border-cyan-400 transition-all group"
+                className="group relative overflow-hidden glass rounded-xl p-3.5 hover:bg-white/10 transition-all duration-300"
               >
-                <Radio size={16} className="text-cyan-400" />
-                <span className="text-sm text-cyan-400 font-medium">Live TV</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative flex items-center justify-center gap-2">
+                  <Radio size={16} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm text-cyan-400 font-medium">Live TV</span>
+                </div>
               </Link>
             </div>
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-1 p-2 border-b border-green-500/20 bg-black/50">
-            <div className="text-center p-2">
-              <div className="text-lg font-bold text-green-400">12.4K</div>
-              <div className="text-[8px] text-gray-500 uppercase">Listeners</div>
+          <div className="grid grid-cols-3 gap-px p-3 border-b border-white/5 bg-gradient-to-r from-white/[0.02] to-transparent">
+            <div className="text-center p-3 glass rounded-lg">
+              <div className="text-xl font-bold gradient-text">12.4K</div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Listeners</div>
             </div>
-            <div className="text-center p-2 border-x border-green-500/10">
-              <div className="text-lg font-bold text-cyan-400">$2.4M</div>
-              <div className="text-[8px] text-gray-500 uppercase">24h Vol</div>
+            <div className="text-center p-3 glass rounded-lg">
+              <div className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-cyan-600 bg-clip-text text-transparent">$2.4M</div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">24h Vol</div>
             </div>
-            <div className="text-center p-2">
-              <div className="text-lg font-bold text-purple-400">847</div>
-              <div className="text-[8px] text-gray-500 uppercase">Artists</div>
+            <div className="text-center p-3 glass rounded-lg">
+              <div className="text-xl font-bold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">847</div>
+              <div className="text-[10px] text-gray-500 uppercase tracking-wider mt-1">Artists</div>
             </div>
           </div>
 
           {/* Trending Section Header */}
-          <div className="flex items-center justify-between px-3 py-2 bg-green-900/10">
-            <div className="flex items-center gap-2 text-[10px]">
-              <TrendingUp size={12} className="text-green-400" />
-              <span className="font-bold">TRENDING NOW</span>
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-white/[0.02] to-transparent border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={14} className="text-cyan-400" />
+              <span className="font-semibold text-sm text-white">Trending Now</span>
             </div>
-            <Link href="/charts" className="text-[10px] text-green-400 hover:underline flex items-center">
-              View All <ChevronRight size={12} />
+            <Link href="/charts" className="text-xs text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors group">
+              View All
+              <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
             </Link>
           </div>
 
           {/* Track List */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide">
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
             {MARKET_ASSETS.map((asset, index) => {
-              const changeColor = asset.change24h > 0 ? 'green-500' : asset.change24h < 0 ? 'red-500' : 'gray-500';
+              const changeColor = asset.change24h > 0 ? 'cyan-400' : asset.change24h < 0 ? 'red-400' : 'gray-400';
               const changeSign = asset.change24h > 0 ? '+' : '';
               const isActive = currentTrack?.id === asset.id;
-              
+
               return (
-                <div 
-                  key={asset.id} 
+                <div
+                  key={asset.id}
                   onClick={() => handleAssetClick(asset)}
-                  className={`group p-3 border-b border-white/5 cursor-pointer flex items-center justify-between hover:bg-green-500/5 transition-all ${isActive ? 'bg-green-500/10 border-l-2 border-l-green-500' : ''} ${asset.isPremium && !connected ? 'opacity-60' : ''}`}
+                  className={`group relative p-4 border-b border-white/5 cursor-pointer flex items-center justify-between transition-all duration-300 ${isActive ? 'bg-gradient-to-r from-cyan-500/10 via-purple-500/5 to-transparent border-l-2 border-l-cyan-400' : 'hover:bg-white/5'} ${asset.isPremium && !connected ? 'opacity-60' : ''}`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4 flex-1">
                     {/* Rank */}
-                    <span className="text-lg font-bold text-gray-600 w-6">{index + 1}</span>
-                    
+                    <span className="text-base font-bold bg-gradient-to-br from-gray-400 to-gray-600 bg-clip-text text-transparent w-6">{index + 1}</span>
+
                     {/* Cover */}
-                    <div className="relative w-10 h-10 bg-gray-900 border border-white/10 rounded overflow-hidden">
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden ring-1 ring-white/10 group-hover:ring-cyan-400/50 transition-all duration-300">
                       <img src={asset.coverUrl} alt={`${asset.title} cover`} className="w-full h-full object-cover" />
                       {/* Play overlay on hover */}
-                      <div className={`absolute inset-0 flex items-center justify-center bg-black/50 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                      <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-sm transition-all duration-300 ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                         {isActive && isPlaying ? (
-                          <Pause size={16} className="text-green-400" />
+                          <Pause size={18} className="text-cyan-400 drop-shadow-lg" />
                         ) : (
-                          <Play size={16} className="text-white" />
+                          <Play size={18} className="text-white drop-shadow-lg group-hover:scale-110 transition-transform" />
                         )}
                       </div>
                       {/* Gate Badge */}
                       {asset.isPremium && (
-                        <div className={`absolute top-0 right-0 p-0.5 ${connected ? 'bg-green-500' : 'bg-red-500'}`}>
-                          {connected ? <Unlock size={8} /> : <Lock size={8} />}
+                        <div className={`absolute top-1 right-1 p-1 rounded backdrop-blur-md ${connected ? 'bg-cyan-500/80' : 'bg-red-500/80'}`}>
+                          {connected ? <Unlock size={10} className="text-white" /> : <Lock size={10} className="text-white" />}
                         </div>
                       )}
+                      {/* Active indicator */}
+                      {isActive && (
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-purple-500"></div>
+                      )}
                     </div>
-                    
+
                     {/* Info */}
-                    <div>
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-white">{asset.title}</span>
+                        <span className="text-sm font-semibold text-white truncate">{asset.title}</span>
                         {asset.isPremium && (
-                          <span className={`text-[8px] px-1 py-0.5 rounded ${asset.gateType === 'nft' ? 'bg-purple-900/50 text-purple-400' : 'bg-yellow-900/50 text-yellow-400'}`}>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${asset.gateType === 'nft' ? 'bg-purple-500/20 text-purple-400 ring-1 ring-purple-500/30' : 'bg-yellow-500/20 text-yellow-400 ring-1 ring-yellow-500/30'}`}>
                             {asset.gateType === 'nft' ? 'NFT' : 'TOKEN'}
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-gray-500">{asset.artist} • {asset.region}</div>
+                      <div className="text-xs text-gray-500 truncate mt-0.5">{asset.artist} • {asset.region}</div>
                     </div>
                   </div>
-                  
+
                   {/* Price/Change */}
                   <div className="text-right">
-                    <div className="text-sm font-mono text-white">${asset.currentPrice.toFixed(2)}</div>
-                    <div className={`text-[10px] font-mono text-${changeColor}`}>{changeSign}{asset.change24h.toFixed(2)}%</div>
+                    <div className="text-sm font-mono font-semibold text-white">${asset.currentPrice.toFixed(2)}</div>
+                    <div className={`text-[11px] font-mono font-medium text-${changeColor}`}>{changeSign}{asset.change24h.toFixed(2)}%</div>
                   </div>
                 </div>
               );
@@ -345,40 +356,42 @@ export default function Home() {
           />
           
           {/* Now Playing Overlay */}
-          <div className="absolute bottom-10 left-10 p-4 border border-green-500/20 bg-black/70 backdrop-blur-md max-w-xs rounded-lg">
-            <div className="text-[10px] text-green-500/50 mb-1 tracking-widest uppercase flex items-center gap-1">
+          <div className="absolute bottom-10 left-10 p-6 glass-strong rounded-2xl max-w-sm backdrop-blur-2xl border border-white/10 shadow-2xl">
+            <div className="flex items-center gap-2 mb-3">
               {isPlaying ? (
                 <>
-                  <Activity size={10} className="animate-pulse text-green-400" />
-                  NOW PLAYING
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 animate-pulse"></div>
+                    <span className="text-[10px] gradient-text tracking-widest uppercase font-semibold">NOW PLAYING</span>
+                  </div>
                 </>
               ) : (
-                'SELECT A TRACK'
+                <span className="text-[10px] text-gray-500 tracking-widest uppercase font-semibold">SELECT A TRACK</span>
               )}
             </div>
-            <div className="text-2xl font-bold text-white">{currentTrack?.title || "Orbital_Idle"}</div>
-            <div className="text-sm text-gray-400">{currentTrack?.artist ? `by ${currentTrack.artist}` : ''}</div>
-            <div className="text-xs text-gray-500 mt-1">{currentTrack?.region || ''}</div>
-            <div className="flex gap-4 mt-3 text-[10px] text-green-600">
-              <div className="flex items-center gap-1">
-                <MapPin size={10} />
-                LAT: {latDisplay}
+            <div className="text-3xl font-bold text-white mb-1">{currentTrack?.title || "Orbital_Idle"}</div>
+            <div className="text-sm text-gray-400 mb-2">{currentTrack?.artist ? `by ${currentTrack.artist}` : ''}</div>
+            <div className="text-xs text-gray-500 mb-4">{currentTrack?.region || ''}</div>
+            <div className="flex gap-6 text-[11px] text-gray-400 font-mono">
+              <div className="flex items-center gap-1.5">
+                <MapPin size={12} className="text-cyan-400" />
+                <span>LAT: {latDisplay}</span>
               </div>
-              <div className="flex items-center gap-1">
-                <MapPin size={10} />
-                LON: {lonDisplay}
+              <div className="flex items-center gap-1.5">
+                <MapPin size={12} className="text-purple-400" />
+                <span>LON: {lonDisplay}</span>
               </div>
             </div>
           </div>
 
           {/* Command Palette Hint */}
-          <div className="absolute top-20 right-4">
-            <button 
+          <div className="absolute top-20 right-6">
+            <button
               onClick={() => setShowCommandPalette(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-black/50 border border-green-500/30 rounded-lg hover:bg-green-500/10 transition-colors text-xs"
+              className="flex items-center gap-2 px-4 py-2.5 glass rounded-xl hover:bg-white/10 transition-all duration-300 text-xs font-medium group border border-white/10 hover:border-cyan-400/50"
             >
-              <Command size={12} />
-              <span>⌘K</span>
+              <Command size={14} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+              <span className="text-gray-400 group-hover:text-white transition-colors">⌘K</span>
             </button>
           </div>
         </div>
